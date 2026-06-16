@@ -122,6 +122,19 @@
       "chunkCount": 438,
       "file": "muscle-strength-pyramid.json",
       "preloaded": true
+    },
+    {
+      "slug": "review-of-algebra",
+      "title": "A Review of Algebra",
+      "author": "Romeyn Henry Rivenburg",
+      "categories": [
+        "maths",
+        "study"
+      ],
+      "pages": 50,
+      "chunkCount": 80,
+      "file": "review-of-algebra.json",
+      "preloaded": true
     }
   ]
 }

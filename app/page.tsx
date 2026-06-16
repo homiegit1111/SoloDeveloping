@@ -11,7 +11,6 @@ import StatBars from "@/components/StatBars";
 import HabitTracker from "@/components/HabitTracker";
 import DailyPlanView from "@/components/DailyPlanView";
 import WeeklyReportView from "@/components/WeeklyReportView";
-import CurriculumView from "@/components/CurriculumView";
 import Onboarding from "@/components/Onboarding";
 import JournalCard from "@/components/JournalCard";
 import FreezePanel from "@/components/FreezePanel";
@@ -23,12 +22,11 @@ import { isFrozen } from "@/lib/store";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
 
-type Tab = "home" | "plan" | "curriculum" | "report";
+type Tab = "home" | "plan" | "report";
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
   { id: "home", label: "HQ", sub: "Status" },
   { id: "plan", label: "Plan", sub: "Today" },
-  { id: "curriculum", label: "Train", sub: "Curriculum" },
   { id: "report", label: "Report", sub: "Weekly" },
 ];
 
@@ -267,9 +265,7 @@ export default function Home() {
               className="space-y-4"
             >
               {tab === "home" && homeContent}
-              {tab === "plan" && <div className="lg:max-w-2xl"><DailyPlanView /></div>}
-              {tab === "curriculum" && <div className="lg:max-w-3xl"><CurriculumView /></div>}
-              {tab === "report" && <div className="lg:max-w-2xl"><WeeklyReportView /></div>}
+              {tab === "plan" && <div className="lg:max-w-2xl"><DailyPlanView /></div>}              {tab === "report" && <div className="lg:max-w-2xl"><WeeklyReportView /></div>}
             </motion.div>
           </AnimatePresence>
         </main>

@@ -4,10 +4,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { WeeklyReport } from "@/lib/types";
-import { dayNumber } from "@/lib/store";
+import { dayNumber, activeChunks } from "@/lib/store";
+import { diagnose } from "@/lib/diagnosis";
+import { retrieveAll, domainChunksOf } from "@/lib/retrieval";
 
 export default function WeeklyReportView() {
-  const { state, saveReport, retrieve } = useApp();
+  const { state, saveReport } = useApp();
   const day = dayNumber(state);
   const week = Math.ceil(day / 7);
   const reports = Object.values(state.reports).sort((a, b) => b.weekNumber - a.weekNumber);
@@ -19,11 +21,12 @@ export default function WeeklyReportView() {
     setLoading(true);
     setErr("");
     try {
-      const chunks = retrieve("mindset discipline transformation legend psychology habit", 5);
+      const passages = retrieveAll(activeChunks(state), diagnose(state));
+      const domainChunks = domainChunksOf(passages);
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state, chunks }),
+        body: JSON.stringify({ state, domainChunks }),
       });
       const data = await res.json();
       if (data.report) {

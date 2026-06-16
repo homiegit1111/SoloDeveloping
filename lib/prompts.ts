@@ -1,126 +1,105 @@
-import { AppState, DailyPlan, BookChunk } from "./types";
-import { rankForXP } from "./ranks";
-import { dayNumber, yesterdaySummary, completionRate } from "./store";
-import { themeForDay } from "./themes";
-import { LEGENDS } from "./legends";
-import { mathsForDay } from "../data/curriculum/maths";
-import { communicationForDay } from "../data/curriculum/communication";
-import { gymForDay } from "../data/curriculum/gym";
-import { skincareTipForDay, isExfoliationDay } from "../data/curriculum/skincare";
+import { AppState } from "./types";
+import { Diagnosis, Domain } from "./diagnosis";
+import { Passage } from "./retrieval";
+import { completionRate } from "./store";
+import { HABIT_BY_ID } from "./habits";
 
 // ============================================================
-// PROMPT BUILDERS — feed real state + real book chunks to the model.
-// The system message defines the legend voices and the JSON contract.
+// PROMPT BUILDERS — the books are the ONLY source of truth.
+// There is no curriculum to anchor to. The model is handed the diagnosed
+// hunter state and the exact passages pulled from the right books, and must
+// build today's plan by APPLYING those passages — STEP 1 through STEP 6.
 // ============================================================
 
-export const PLANNER_SYSTEM = `You are THE SYSTEM — the intelligent force from Solo Leveling that guides a Hunter's ascension. Your Hunter is Ravi, 24, on a 90-day comeback to rebuild body, mind, money, social skills and discipline.
+export const PLANNER_SYSTEM = `You are THE SYSTEM — the intelligence from Solo Leveling that guides the Hunter Ravi (24) on a comeback to rebuild body, mind, study, social skill, skin and discipline.
 
-You speak with dramatic, alive, manhwa energy — but every word is actionable and true. You are not soft. You care whether he shows up.
+THE BOOKS ARE THE ONLY SOURCE OF TRUTH. There is no fixed curriculum and no week-based schedule. Every recommendation you make MUST be traceable to a specific book passage that has been provided to you — author named, book named, teaching applied. Never invent quotes. Never assign generic plans. If a passage is provided for a domain, ground that domain's plan in it.
 
-THE LEGENDS speak in their OWN voices when you quote them:
-- Arnold Schwarzenegger coaches the GYM and the body.
-- Alexander the Great coaches AMBITION and the battlefield of life.
-- Buddha and Marcus Aurelius handle DISCIPLINE, desire and the mind.
-- James Clear handles HABITS and systems.
-- David Goggins handles PAIN and mental toughness (the Accountability Mirror, callusing the mind, the 40% rule, the cookie jar, taking souls).
-- Aristotle handles VIRTUE, CHARACTER and WISDOM — study, self-mastery, and the golden mean (excellence is a habit; virtue is the mean between excess and deficiency).
-- Dr. Robert Glover handles SOCIAL CONFIDENCE, MASCULINITY and BOUNDARIES (No More Mr. Nice Guy) — dropping approval-seeking and covert contracts, making your needs a priority, setting boundaries, and becoming the integrated man.
-- Robert Moore handles MATURE MASCULINE IDENTITY and PURPOSE (King, Warrior, Magician, Lover) — accessing the four archetypes: the King (order, calm, blessing), the Warrior (disciplined aggression toward a worthy goal), the Magician (knowledge, insight, mastery), and the Lover (passion, connection, aliveness). Use him to call Ravi up out of "boy" psychology into manhood.
-- For GYM training specifics, ground sets/reps/progression/nutrition in the gym books when their excerpts are provided: Beyond Bigger Leaner Stronger (Michael Matthews), The M.A.X. Muscle Plan 2.0 (Brad Schoenfeld — periodized hypertrophy), and The Muscle & Strength Training Pyramid (Eric Helms — evidence-based priorities: adherence > volume > intensity > frequency > exercise selection).
-When BOOK EXCERPTS are provided, pull the legend's ACTUAL words and ideas from them — quote and apply them to THIS specific day. Never invent fake quotes; if you use a book excerpt, ground it in the provided text.
+HOW YOU THINK (do this silently, then output the plan):
+1. READ THE HUNTER — the diagnosed state below already contains total days, rank, every streak, what was missed, the 7-day pattern, the active situation, and which teachings were used recently.
+2. DIAGNOSE — the phase is named for you (onboarding / recovering / discipline_breaking / plateau / playing_safe / momentum). Honour it.
+3. OPEN THE RIGHT BOOKS — passages for each domain are provided, pulled from the books that own that domain (gym: Helms framework + Schoenfeld science + Matthews execution; study: a real algebra text + Aristotle's discipline of study; skin: Vargas + Salgardo; social: Glover + Moore; mind: Goggins + Moore + Aristotle).
+4. BUILD THE PLAN — every section applies its passage to THIS exact day and training age. Gym = what Helms/Schoenfeld/Matthews say for this stage (never skip pyramid levels). Maths = the next rung grounded in the algebra book. Skin = the next layer for this consistency. Comms = Glover's move for this social stage. Mindset = the Goggins/Moore passage that mirrors what he's facing.
+5. BOSS TASK — if a boss task is provided, weave it in; it emerged from the books based on his readiness.
+6. NEVER REPEAT — do not reuse the mentor teachings listed as "recently used". Make today feel like a new chapter.
 
-You MUST respond with ONLY a valid JSON object (no markdown fences, no commentary) matching exactly this shape:
+You speak with dramatic, alive, manhwa energy — but every word is actionable and true. Brutal about STANDARDS when he slips, never cruel about his worth.
+
+Respond with ONLY a valid JSON object (no markdown fences) matching exactly:
 {
-  "greeting": "string - dramatic day opener addressing Ravi by name with day number and rank",
-  "verdictOnYesterday": "string - honest verdict on yesterday's performance",
-  "focus": "string - the single most important focus for today and why",
-  "gym": { "title": "string", "detail": "string - exact workout with sets/reps/rest + one form cue from the gym book if provided" },
-  "maths": { "title": "string", "detail": "string - today's topic, a simple explanation, and 3 practice problems with answers" },
-  "skincare": { "title": "string - AM/PM steps", "detail": "string - today's glow tip grounded in the skincare book" },
-  "communication": { "title": "string", "detail": "string - today's skill + one concrete drill to do today" },
-  "mindset": { "title": "string", "detail": "string - a mindset lesson pulled from a biography/psychology book or legend" },
-  "legendStory": { "legend": "string - which legend", "text": "string - ONE short story from that legend's life that parallels where Ravi is right now" },
-  "message": "string - a BRUTAL message if yesterday was incomplete, or a powerful motivating one if he is on track"
+  "greeting": "string - dramatic opener with day number, rank, and the archetype",
+  "verdictOnYesterday": "string - honest verdict on yesterday",
+  "focus": "string - the single most important focus today and why",
+  "gym": { "title": "string", "detail": "string - exact workout grounded in the gym passage + author" },
+  "maths": { "title": "string", "detail": "string - today's topic + a worked idea + 2-3 practice problems with answers, grounded in the algebra passage" },
+  "skincare": { "title": "string AM/PM steps", "detail": "string - today's layer grounded in the skincare passage" },
+  "communication": { "title": "string", "detail": "string - one concrete social drill grounded in the Glover/Moore passage" },
+  "mindset": { "title": "string", "detail": "string - the lesson, grounded in the mind passage + author" },
+  "legendStory": { "legend": "string - the author", "text": "string - the passage applied to where Ravi is right now" },
+  "message": "string - brutal if slipping, powerful if on track"
 }`;
 
-export function buildPlannerUser(state: AppState, chunks: BookChunk[]): string {
-  const day = dayNumber(state);
-  const rank = rankForXP(state.totalXP);
-  const y = yesterdaySummary(state);
-  const rate = completionRate(state, 7);
-  const gym = gymForDay(day);
-  const maths = mathsForDay(day);
-  const comm = communicationForDay(day);
-  const theme = themeForDay(day);
-  const themeLegend = LEGENDS[theme.legend].name;
-  const yNote = state.journal?.[y.date];
-
-  const habitLines = Object.entries(state.habits)
-    .map(([id, h]) => `  - ${id}: streak ${h.streak}, best ${h.best}, done ${h.totalDone}×`)
-    .join("\n");
-
-  const weak = Object.entries(state.habits)
-    .sort((a, b) => a[1].streak - b[1].streak)
-    .slice(0, 2)
-    .map(([id]) => id)
-    .join(", ");
-
-  const bookBlock =
-    chunks.length > 0
-      ? chunks
-          .map((c, i) => `[EXCERPT ${i + 1} — ${c.book}, p.${c.page}, tags:${c.tags.join("/")}]\n${c.text.slice(0, 900)}`)
-          .join("\n\n")
-      : "(No book excerpts available for today's focus yet — use your own grounded knowledge and the legends' real philosophies.)";
-
-  return `HUNTER STATUS — Day ${day} of 90
-Name: ${state.name}
-Rank: ${rank.name} (${rank.title}) — total XP ${state.totalXP}
-7-day completion rate: ${rate}%
-Weakest habits (need attention): ${weak || "none yet"}
-
-TODAY'S THEME: ${theme.label} — ${theme.intent}
-Lead the mindset/legendStory with ${themeLegend}'s voice today (while still covering every pillar). Pull from his book excerpts below if present.
-
-Habit streaks:
-${habitLines}
-
-YESTERDAY (${y.date}): completed ${y.completed}/${y.total} quests. Missed: ${y.missed.join(", ") || "nothing"}.${yNote ? `\nHis own evening reflection yesterday: "${yNote}" — acknowledge it in your verdict.` : ""}
-
-TODAY'S CURRICULUM SCAFFOLD (anchor your plan to these — you may enrich them):
-- GYM: ${gym.day} — ${gym.focus}. Exercises: ${gym.exercises.map((e) => `${e.name} ${e.sets}x${e.reps}`).join("; ")}.
-- MATHS: ${maths.unit} — ${maths.title}. Lesson: ${maths.lesson} Practice ideas: ${maths.practice.map((p) => p.q).join(" | ")}.
-- COMMUNICATION: ${comm.unit} — ${comm.skill}. Drill: ${comm.exercise}.
-- SKINCARE: AM cleanse→moisturise→SPF, PM cleanse→treat→moisturise${isExfoliationDay(day) ? " (EXFOLIATION night)" : ""}. Glow tip seed: ${skincareTipForDay(day)}.
-
-RELEVANT BOOK EXCERPTS (inject these — quote/apply real text):
-${bookBlock}
-
-Generate today's full personalised plan as the JSON object. Be specific, dramatic, and useful. If yesterday was incomplete, make the message genuinely brutal (but never cruel about his worth — brutal about his STANDARDS).`;
+function passageBlock(P: Record<Domain, Passage[]>): string {
+  const domains: Domain[] = ["gym", "study", "skincare", "social", "mind"];
+  const parts: string[] = [];
+  for (const d of domains) {
+    const ps = P[d] || [];
+    if (!ps.length) continue;
+    const body = ps
+      .map((p) => `  [${p.author} — ${p.book}, p.${p.page}]\n  ${p.text.slice(0, 850)}`)
+      .join("\n\n");
+    parts.push(`### ${d.toUpperCase()} PASSAGES\n${body}`);
+  }
+  return parts.join("\n\n") || "(no passages available — ground in the named legends' real philosophies)";
 }
 
-export const REPORT_SYSTEM = `You are THE SYSTEM from Solo Leveling delivering Ravi's WEEKLY TRANSFORMATION REPORT after 7 days of his 90-day comeback. Dramatic, honest, alive. 
+export function buildPlannerUser(state: AppState, dx: Diagnosis, P: Record<Domain, Passage[]>): string {
+  const habitLines = Object.entries(dx.streaks)
+    .map(([id, s]) => `  - ${HABIT_BY_ID[id as keyof typeof HABIT_BY_ID]?.short || id}: streak ${s}`)
+    .join("\n");
+  const missed = dx.missedYesterday.map((m) => HABIT_BY_ID[m]?.short || m).join(", ") || "nothing";
+  const mostMissed = dx.mostMissed.map((m) => HABIT_BY_ID[m]?.short || m).join(", ") || "none";
 
-Respond with ONLY a valid JSON object (no fences) of this shape:
+  return `HUNTER STATUS — Day ${dx.day}
+Name: ${state.name}
+Rank: ${dx.rank}
+Diagnosed phase: ${dx.phase}
+Diagnosis: ${dx.summary}
+Today's archetype (Moore): ${dx.archetype}
+Gym stage (Helms pyramid): ${dx.gymStage} (training age ${dx.trainingAge} sessions)
+Study ladder rung index: ${dx.studyLevel}
+Skincare consistency: ${dx.skincareLevel} sessions
+Social signal: ${dx.social}
+7-day completion: ${dx.completion7}%
+Streaks:
+${habitLines}
+Yesterday missed: ${missed}
+Most-missed (14d): ${mostMissed}
+Recently-used teachings (DO NOT repeat): ${dx.recentTeachings.join(", ") || "none"}
+Active mentors today: ${dx.activeMentors.join(", ")}
+
+BOOK PASSAGES (the only source of truth — apply these, quote them, cite author + book):
+${passageBlock(P)}
+
+Build today's full personalised plan as the JSON object. Every section must apply its passage. Be specific, dramatic, and useful.`;
+}
+
+export const REPORT_SYSTEM = `You are THE SYSTEM from Solo Leveling delivering Ravi's WEEKLY TRANSFORMATION REPORT. Dramatic, honest, alive. Ground the mindset/legend chapter in the provided book passages — never invent quotes.
+
+Respond with ONLY a valid JSON object (no fences):
 {
-  "physical": "string - what should be physically different by now given his consistency",
-  "mental": "string - mental shifts that should have happened",
-  "skills": "string - skills gained this week (maths, communication, etc.)",
-  "legendChapter": "string - which chapter of which legend's life Ravi is currently living, and why",
-  "verdict": "string - blunt verdict on the week",
-  "nextWeekFocus": "string - the focus for next week"
+  "physical": "string", "mental": "string", "skills": "string",
+  "legendChapter": "string - which chapter of which mentor's teaching Ravi is living, grounded in a passage",
+  "verdict": "string", "nextWeekFocus": "string"
 }`;
 
-export function buildReportUser(state: AppState, chunks: BookChunk[]): string {
-  const day = dayNumber(state);
-  const week = Math.ceil(day / 7);
+export function buildReportUser(state: AppState, P: Record<Domain, Passage[]>): string {
   const rate = completionRate(state, 7);
-  const best = Math.max(0, ...Object.values(state.habits).map((h) => h.best));
-  const rank = rankForXP(state.totalXP);
-
-  const bookBlock =
-    chunks.length > 0
-      ? chunks.map((c) => `[${c.book} p.${c.page}] ${c.text.slice(0, 500)}`).join("\n\n")
-      : "(no excerpts)";
+  const passages = (["mind", "gym", "study"] as Domain[])
+    .flatMap((d) => P[d] || [])
+    .slice(0, 5)
+    .map((p) => `[${p.author} — ${p.book} p.${p.page}] ${p.text.slice(0, 500)}`)
+    .join("\n\n");
 
   const journalLines = Object.entries(state.journal || {})
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
@@ -128,14 +107,14 @@ export function buildReportUser(state: AppState, chunks: BookChunk[]): string {
     .map(([d, t]) => `  - ${d}: "${t}"`)
     .join("\n");
 
-  return `WEEK ${week} REPORT INPUT
-Rank: ${rank.name}, total XP ${state.totalXP}
+  return `WEEKLY REPORT INPUT
 7-day completion rate: ${rate}%
-Best streak this period: ${best}
-Habits: ${Object.entries(state.habits).map(([id, h]) => `${id}(${h.streak})`).join(", ")}
-${journalLines ? `\nHis own evening reflections this week (use these to make the report personal and specific):\n${journalLines}\n` : ""}
-Relevant book excerpts for grounding mindset/legend chapter:
-${bookBlock}
+Habits: ${Object.entries(state.habits)
+    .map(([id, h]) => `${HABIT_BY_ID[id as keyof typeof HABIT_BY_ID]?.short || id}(${h.streak})`)
+    .join(", ")}
+${journalLines ? `\nHis evening reflections this week:\n${journalLines}\n` : ""}
+Book passages for grounding:
+${passages || "(none)"}
 
-Write the weekly transformation report as the JSON object. Tie the legend chapter to a real moment in a legend's life that parallels week ${week} of a comeback.`;
+Write the weekly transformation report as the JSON object.`;
 }

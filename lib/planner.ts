@@ -1,106 +1,26 @@
 import { AppState, BookChunk, DailyPlan, WeeklyReport } from "./types";
-import { mathsForDay } from "../data/curriculum/maths";
-import { communicationForDay } from "../data/curriculum/communication";
-import { skincareTipForDay, isExfoliationDay } from "../data/curriculum/skincare";
-import { gymForDay } from "../data/curriculum/gym";
-import { LEGEND_LINES, LEGENDS, legendForFocus, pick } from "./legends";
-import { dayNumber, yesterdaySummary, completionRate } from "./store";
+import { dayNumber, completionRate } from "./store";
 import { rankForXP, nextRank } from "./ranks";
+import { diagnose } from "./diagnosis";
+import { passagesFromDomainChunks } from "./retrieval";
+import { buildIntelligentPlan } from "./intelligence";
 
 // ============================================================
-// LOCAL (rule-based) DAILY PLANNER
-// Always works, no API key required. The AI route uses this as a
-// scaffold and rewrites the prose + injects real book quotes.
+// LOCAL (no-AI) DAILY PLANNER
+// Always works, no API key required. Delegates to the intelligence engine:
+// diagnose the hunter, then build the plan from the passages the client pulled
+// out of the books. No curriculum, no fixed weekly schedule — the books are
+// the only source of truth. When an AI key is set, the route hands the same
+// diagnosis + passages to the model to write the plan in richer prose.
 // ============================================================
 
-// Trim a raw book chunk into a clean, readable passage that ends on a sentence.
-function cleanPassage(text: string, max = 300): string {
-  let t = text.replace(/\s+/g, " ").trim();
-  if (t.length <= max) return t;
-  t = t.slice(0, max);
-  const lastStop = Math.max(t.lastIndexOf(". "), t.lastIndexOf("! "), t.lastIndexOf("? "));
-  if (lastStop > 120) t = t.slice(0, lastStop + 1);
-  return t.trim() + (t.endsWith(".") || t.endsWith("!") || t.endsWith("?") ? "" : "…");
-}
-
-export function buildLocalPlan(state: AppState, chunks: BookChunk[] = []): DailyPlan {
-  const day = dayNumber(state);
-  const seed = day + state.totalXP;
-  const y = yesterdaySummary(state);
-  const rank = rankForXP(state.totalXP);
-  const incompleteYesterday = y.completed < y.total && Object.keys(state.history).length > 0;
-
-  const gym = gymForDay(day);
-  const maths = mathsForDay(day);
-  const comm = communicationForDay(day);
-
-  // pick a focus = the habit with the weakest streak
-  const weakest = Object.entries(state.habits).sort((a, b) => a[1].streak - b[1].streak)[0];
-  const focusKey = weakest ? weakest[0] : "discipline";
-  const legendKey = legendForFocus(focusKey);
-
-  const greeting = incompleteYesterday
-    ? `Day ${day}, ${state.name}. Yesterday you left ${y.missed.length} quest(s) undone. The System remembers. Today you correct it.`
-    : `Day ${day}, ${state.name}. Rank ${rank.name}. The gate is open. Step through.`;
-
-  const verdict = incompleteYesterday
-    ? `Incomplete. Missed: ${y.missed.join(", ")}. No excuses logged — only results. Reclaim the streak today.`
-    : Object.keys(state.history).length === 0
-    ? `This is the beginning. There is no yesterday to judge. There is only the man you start building right now.`
-    : `Yesterday was complete. ${y.completed}/${y.total} quests cleared. This is how Monarchs are made — one full day at a time.`;
-
-  const exfoNote = isExfoliationDay(day) ? " Tonight is an EXFOLIATION night (gentle, 2-3×/week)." : "";
-
-  const message = incompleteYesterday
-    ? pick(LEGEND_LINES.goggins, seed)
-    : pick(LEGEND_LINES[legendKey], seed);
-
-  // ---- REAL book quotes (no AI needed) ----
-  // The client passes relevant passages from the user's actual uploaded books.
-  // When present, weave a genuine passage + page citations into the plan so the
-  // "without AI" experience still draws on the real books.
-  // Book chunks silently power the prose, but books are never surfaced to the
-  // user — no library names, pages, or citations appear anywhere in the UI.
-  const hasBooks = Array.isArray(chunks) && chunks.length > 0;
-  const top = hasBooks ? chunks[0] : null;
-  const legendStory = top
-    ? { legend: LEGENDS[legendKey].name, text: cleanPassage(top.text) }
-    : { legend: LEGENDS[legendKey].name, text: pick(LEGEND_LINES[legendKey], seed + 2) };
-  const mindsetDetail = top
-    ? `${pick(LEGEND_LINES[legendKey], seed + 1)}\n\n"${cleanPassage(top.text, 220)}"`
-    : pick(LEGEND_LINES[legendKey], seed + 1);
-  const citations = undefined;
-
-  return {
-    date: new Date().toISOString().slice(0, 10),
-    generatedBy: "local",
-    greeting,
-    verdictOnYesterday: verdict,
-    focus: `Primary focus: ${focusKey.toUpperCase()} (your weakest streak). Bring it back to life today.`,
-    gym: {
-      title: `${gym.day} — ${gym.focus}`,
-      detail: `Warmup: ${gym.warmup}\n` + gym.exercises.map((e) => `• ${e.name}: ${e.sets}×${e.reps}, rest ${e.rest}. ${e.form}`).join("\n") + (gym.finisher ? `\nFinisher: ${gym.finisher}` : ""),
-    },
-    maths: {
-      title: `${maths.unit} — ${maths.title}`,
-      detail: `${maths.lesson}\nExample: ${maths.example}\nPractice:\n` + maths.practice.map((p, i) => `${i + 1}. ${p.q}  (ans: ${p.a})`).join("\n"),
-    },
-    skincare: {
-      title: "AM: Cleanse → Moisturise → SPF. PM: Cleanse → (Treat) → Moisturise." + exfoNote,
-      detail: `Glow tip: ${skincareTipForDay(day)}`,
-    },
-    communication: {
-      title: `${comm.unit} — ${comm.skill}`,
-      detail: `Why: ${comm.why}\nToday's drill: ${comm.exercise}${comm.phrase ? `\nDeploy: ${comm.phrase}` : ""}`,
-    },
-    mindset: {
-      title: `Lesson from ${LEGENDS[legendKey].name}`,
-      detail: mindsetDetail,
-    },
-    legendStory,
-    message,
-    bookCitations: citations,
-  };
+export function buildLocalPlan(
+  state: AppState,
+  domainChunks?: Record<string, BookChunk[]>
+): DailyPlan {
+  const dx = diagnose(state);
+  const passages = passagesFromDomainChunks(domainChunks);
+  return buildIntelligentPlan(state, dx, passages);
 }
 
 // ============================================================
@@ -112,7 +32,6 @@ export function buildLocalReport(state: AppState): WeeklyReport {
   const rate = completionRate(state, 7);
   const xpWeek = sumLastDaysXP(state, 7);
   const bestStreak = Math.max(0, ...Object.values(state.habits).map((h) => h.best));
-  const rank = rankForXP(state.totalXP);
   const nxt = nextRank(state.totalXP);
 
   return {
@@ -121,17 +40,17 @@ export function buildLocalReport(state: AppState): WeeklyReport {
     generatedBy: "local",
     physical:
       rate >= 70
-        ? "Real adaptation is happening. Strength up, conditioning improving, body composition shifting if nutrition held. Sleep and recovery are compounding."
+        ? "Real adaptation is happening. Strength up, conditioning improving, body composition shifting if nutrition held."
         : "Inconsistent training stalls physical change. The body adapts to what you do REPEATEDLY. Tighten the gym + clean food streaks.",
     mental:
       rate >= 70
-        ? "Discipline is becoming identity, not effort. Urges have less grip. Focus and self-trust are climbing."
+        ? "Discipline is becoming identity, not effort. Urges have less grip. Self-trust is climbing."
         : "Mental shifts require streaks. Each missed day resets the rewiring. Protect the discipline quest above all.",
-    skills: `Maths and communication advanced ~${Math.min(7, day)} topics this week. English/social reps are accumulating — fluency follows volume.`,
+    skills: `Maths and study reps are compounding — you advance the ladder by what you actually log, not the calendar.`,
     legendChapter:
       rate >= 70
-        ? "You are living the EARLY ARNOLD chapter — unknown, unglamorous, but out-working everyone in the dark gym before the world notices."
-        : "You are at the chapter every legend faced — the one where it's tempting to quit. Marcus Aurelius would tell you: the obstacle IS the way.",
+        ? "You are living the early grind chapter — unknown, unglamorous, out-working everyone in the dark before the world notices."
+        : "You are at the chapter every legend faced — the one where it's tempting to quit. The obstacle IS the way.",
     verdict:
       rate >= 85
         ? "ELITE WEEK. This is championship behaviour."

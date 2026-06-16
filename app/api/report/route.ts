@@ -3,12 +3,13 @@ import { AppState, BookChunk, WeeklyReport } from "@/lib/types";
 import { callAI, extractJSON } from "@/lib/ai";
 import { REPORT_SYSTEM, buildReportUser } from "@/lib/prompts";
 import { buildLocalReport } from "@/lib/planner";
+import { passagesFromDomainChunks } from "@/lib/retrieval";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  let body: { state?: AppState; chunks?: BookChunk[] } = {};
+  let body: { state?: AppState; domainChunks?: Record<string, BookChunk[]> } = {};
   try {
     body = await req.json();
   } catch {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
   const state = body.state;
   if (!state) return NextResponse.json({ error: "Missing state" }, { status: 400 });
-  const chunks = body.chunks || [];
+  const passages = passagesFromDomainChunks(body.domainChunks);
 
   const local = buildLocalReport(state);
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ report: local, source: "local" });
   }
 
-  const ai = await callAI(REPORT_SYSTEM, buildReportUser(state, chunks), 1800);
+  const ai = await callAI(REPORT_SYSTEM, buildReportUser(state, passages), 1800);
   if (!ai.ok) return NextResponse.json({ report: local, source: "local", aiError: ai.error });
 
   const parsed = extractJSON(ai.text);

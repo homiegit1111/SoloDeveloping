@@ -105,6 +105,15 @@ export interface LegendQuote {
   text: string;
 }
 
+export interface PlanSource {
+  book: string; // book title
+  author: string;
+  mentor?: string; // mentor key
+  page?: number;
+}
+
+export type PlanSection = "gym" | "maths" | "skincare" | "communication" | "mindset";
+
 export interface DailyPlan {
   date: string;
   generatedBy: "ai" | "local";
@@ -119,6 +128,12 @@ export interface DailyPlan {
   legendStory: { legend: string; text: string };
   message: string; // brutal or motivating
   bookCitations?: { book: string; page: number }[];
+  // ---- Intelligence layer (books are the only source of truth) ----
+  diagnosis?: { phase: string; summary: string; archetype?: string };
+  bossTask?: { title: string; detail: string; trigger: string; source?: PlanSource } | null;
+  sources?: Partial<Record<PlanSection, PlanSource>>;
+  usedChunkIds?: string[]; // chunk ids drawn today (STEP 6 never-repeat tracking)
+  teachings?: string[]; // mentor keys used today (no same teaching 2 days running)
 }
 
 export interface WeeklyReport {
