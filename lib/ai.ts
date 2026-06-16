@@ -62,22 +62,45 @@ async function callGroq(system: string, user: string, maxTokens: number): Promis
   return { ok: true, text: data.choices?.[0]?.message?.content ?? "", provider: "groq" };
 }
 
+// Current Gemini models (v1beta generateContent). Tried in order; if one 404s
+// (retired/renamed model, e.g. the old gemini-1.5-flash), we fall through to the next.
+const GEMINI_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-flash-latest",
+  "gemini-2.0-flash-001",
+];
+
 async function callGemini(system: string, user: string, maxTokens: number): Promise<AIResult> {
-  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { temperature: 0.85, maxOutputTokens: maxTokens },
-    }),
+  // Honour an explicit override first, then the known-good fallback chain.
+  const override = (process.env.GEMINI_MODEL || "").trim();
+  const candidates = override ? [override, ...GEMINI_MODELS] : GEMINI_MODELS;
+
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: "user", parts: [{ text: user }] }],
+    generationConfig: { temperature: 0.85, maxOutputTokens: maxTokens },
   });
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  return { ok: true, text, provider: "gemini" };
+
+  let lastErr = "";
+  for (const model of candidates) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
+      return { ok: true, text, provider: "gemini" };
+    }
+    const errText = await res.text();
+    lastErr = `Gemini ${res.status} (${model}): ${errText}`;
+    // Only try the next model when this one is missing/unsupported; otherwise stop.
+    if (res.status !== 404) throw new Error(lastErr);
+  }
+  throw new Error(lastErr || "Gemini: no usable model found.");
 }
 
 async function callAnthropic(system: string, user: string, maxTokens: number): Promise<AIResult> {
