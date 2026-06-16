@@ -1,6 +1,8 @@
 import { AppState, DailyPlan, BookChunk } from "./types";
 import { rankForXP } from "./ranks";
 import { dayNumber, yesterdaySummary, completionRate } from "./store";
+import { themeForDay } from "./themes";
+import { LEGENDS } from "./legends";
 import { mathsForDay } from "../data/curriculum/maths";
 import { communicationForDay } from "../data/curriculum/communication";
 import { gymForDay } from "../data/curriculum/gym";
@@ -49,6 +51,9 @@ export function buildPlannerUser(state: AppState, chunks: BookChunk[]): string {
   const gym = gymForDay(day);
   const maths = mathsForDay(day);
   const comm = communicationForDay(day);
+  const theme = themeForDay(day);
+  const themeLegend = LEGENDS[theme.legend].name;
+  const yNote = state.journal?.[y.date];
 
   const habitLines = Object.entries(state.habits)
     .map(([id, h]) => `  - ${id}: streak ${h.streak}, best ${h.best}, done ${h.totalDone}×`)
@@ -73,10 +78,13 @@ Rank: ${rank.name} (${rank.title}) — total XP ${state.totalXP}
 7-day completion rate: ${rate}%
 Weakest habits (need attention): ${weak || "none yet"}
 
+TODAY'S THEME: ${theme.label} — ${theme.intent}
+Lead the mindset/legendStory with ${themeLegend}'s voice today (while still covering every pillar). Pull from his book excerpts below if present.
+
 Habit streaks:
 ${habitLines}
 
-YESTERDAY (${y.date}): completed ${y.completed}/${y.total} quests. Missed: ${y.missed.join(", ") || "nothing"}.
+YESTERDAY (${y.date}): completed ${y.completed}/${y.total} quests. Missed: ${y.missed.join(", ") || "nothing"}.${yNote ? `\nHis own evening reflection yesterday: "${yNote}" — acknowledge it in your verdict.` : ""}
 
 TODAY'S CURRICULUM SCAFFOLD (anchor your plan to these — you may enrich them):
 - GYM: ${gym.day} — ${gym.focus}. Exercises: ${gym.exercises.map((e) => `${e.name} ${e.sets}x${e.reps}`).join("; ")}.
@@ -114,12 +122,18 @@ export function buildReportUser(state: AppState, chunks: BookChunk[]): string {
       ? chunks.map((c) => `[${c.book} p.${c.page}] ${c.text.slice(0, 500)}`).join("\n\n")
       : "(no excerpts)";
 
+  const journalLines = Object.entries(state.journal || {})
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .slice(0, 7)
+    .map(([d, t]) => `  - ${d}: "${t}"`)
+    .join("\n");
+
   return `WEEK ${week} REPORT INPUT
 Rank: ${rank.name}, total XP ${state.totalXP}
 7-day completion rate: ${rate}%
 Best streak this period: ${best}
 Habits: ${Object.entries(state.habits).map(([id, h]) => `${id}(${h.streak})`).join(", ")}
-
+${journalLines ? `\nHis own evening reflections this week (use these to make the report personal and specific):\n${journalLines}\n` : ""}
 Relevant book excerpts for grounding mindset/legend chapter:
 ${bookBlock}
 

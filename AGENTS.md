@@ -12,6 +12,14 @@ This is not a generic habit tracker. It is **The System** from Solo Leveling mad
 - **API routes** (`app/api/plan`, `app/api/report`, `app/api/books`) are stateless. The client sends `state` + retrieved book `chunks`; routes call the AI and merge results over the local scaffold.
 - **Books**: preloaded as pre-chunked JSON in `public/books-data/`; uploads parsed by `app/api/books` via `pdf-parse`. Retrieval (`retrieveChunks` in `store.ts`) happens client-side from `localStorage`, then relevant chunks are posted to the AI.
 
+## v1.1 systems (added after the 9-book set — keep these working)
+- **Theme of the day** (`lib/themes.ts`): a 9-day rotation that spotlights each legend/domain in turn. `DailyPlanView` injects `themeForDay(day).query` into book retrieval (so every book surfaces over a week) and `buildPlannerUser` tells the AI to lead with that day's legend voice. Server recomputes the same theme from `day`, so no extra route params.
+- **Evening journal** (`state.journal`, `JournalCard`): one line/day. Fed into next-day `buildPlannerUser` verdict and the weekly `buildReportUser` for personalised judgment.
+- **Streak Freeze** (`state.freezeDays`, `FreezePanel`): earn 1 per 7 active days (`freezesEarned/Available`). Applying one to a past missed day **bridges** the streak in `recomputeDerived` (no XP). Frozen yesterday also suppresses the punishment overlay. Date math is UTC-consistent via `addDays`.
+- **Backup & Restore** (`BackupPanel` + `importState`/`sanitizeState`): export/import the whole save as JSON — the safety net against localStorage loss. `sanitizeState` merges any old/imported save onto a fresh default and recomputes all derived values.
+- **Daily reminder** (`ReminderToggle`, `settings.remindersEnabled/reminderHour`): browser Notification opt-in; fires while the app is open past the chosen hour if quests aren't done. Honest scope — tell users to also set a phone alarm.
+- When adding state fields: add to `AppState` (types.ts) AND `defaultState()` AND `sanitizeState()` so old saves migrate cleanly.
+
 ## ⭐ HOW TO ADD THE NEXT BOOKS (most important recurring task)
 Ravi uploads books **2 at a time** (context limits) and will say which categories he wants covered. To preload a new book so it ships with the app:
 

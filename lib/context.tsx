@@ -2,7 +2,16 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { AppState, HabitId, BookMeta, BookChunk, DailyPlan, WeeklyReport } from "./types";
-import { loadState, saveState, defaultState, toggleHabit, todayStr, retrieveChunks } from "./store";
+import {
+  loadState,
+  saveState,
+  defaultState,
+  toggleHabit,
+  todayStr,
+  retrieveChunks,
+  sanitizeState,
+  recomputeDerived,
+} from "./store";
 
 interface Ctx {
   state: AppState;
@@ -14,6 +23,10 @@ interface Ctx {
   saveReport: (report: WeeklyReport) => void;
   reset: () => void;
   retrieve: (query: string, k?: number) => BookChunk[];
+  setJournal: (date: string, text: string) => void;
+  applyFreeze: (date: string) => void;
+  removeFreeze: (date: string) => void;
+  importState: (raw: unknown) => void;
 }
 
 const AppCtx = createContext<Ctx | null>(null);
@@ -104,8 +117,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const retrieve = useCallback((query: string, k = 6) => retrieveChunks(state, query, k), [state]);
 
+  const setJournal = useCallback((date: string, text: string) => {
+    setState((s) => ({ ...s, journal: { ...s.journal, [date]: text } }));
+  }, []);
+
+  const applyFreeze = useCallback((date: string) => {
+    setState((s) => {
+      if ((s.freezeDays || []).includes(date)) return s;
+      const next: AppState = JSON.parse(JSON.stringify(s));
+      next.freezeDays = [...(next.freezeDays || []), date].sort();
+      recomputeDerived(next); // bridge the streak
+      return next;
+    });
+  }, []);
+
+  const removeFreeze = useCallback((date: string) => {
+    setState((s) => {
+      const next: AppState = JSON.parse(JSON.stringify(s));
+      next.freezeDays = (next.freezeDays || []).filter((d) => d !== date);
+      recomputeDerived(next);
+      return next;
+    });
+  }, []);
+
+  const importState = useCallback((raw: unknown) => {
+    const next = sanitizeState((raw || {}) as Partial<AppState>);
+    setState(next);
+  }, []);
+
   return (
-    <AppCtx.Provider value={{ state, ready, toggle, update, setBooks, savePlan, saveReport, reset, retrieve }}>
+    <AppCtx.Provider
+      value={{
+        state,
+        ready,
+        toggle,
+        update,
+        setBooks,
+        savePlan,
+        saveReport,
+        reset,
+        retrieve,
+        setJournal,
+        applyFreeze,
+        removeFreeze,
+        importState,
+      }}
+    >
       {children}
     </AppCtx.Provider>
   );

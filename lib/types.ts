@@ -59,9 +59,13 @@ export interface AppState {
   reports: Record<string, WeeklyReport>; // keyed by week-start date
   books: BookMeta[]; // loaded books (preloaded + uploaded)
   bookChunks: Record<string, BookChunk[]>; // slug -> chunks (in localStorage)
+  journal: Record<string, string>; // date -> one-line evening reflection
+  freezeDays: string[]; // dates protected by a Streak Freeze (bridge the chain, no XP)
   settings: {
     aiEnabled: boolean;
     soundEnabled: boolean;
+    remindersEnabled?: boolean; // browser notification opt-in
+    reminderHour?: number; // 0-23, when to nudge (default 20)
   };
 }
 

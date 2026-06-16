@@ -40,8 +40,18 @@ export function defaultState(name = "Ravi"): AppState {
     reports: {},
     books: [],
     bookChunks: {},
-    settings: { aiEnabled: true, soundEnabled: true },
+    journal: {},
+    freezeDays: [],
+    settings: { aiEnabled: true, soundEnabled: true, remindersEnabled: false, reminderHour: 20 },
   };
+}
+
+export function addDays(dateStr: string, n: number): string {
+  // Operate in UTC to stay consistent with daysBetween() and todayStr(),
+  // which both anchor on UTC midnight — avoids timezone off-by-one bugs.
+  const d = new Date(dateStr + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
 export function loadState(): AppState {
@@ -50,12 +60,36 @@ export function loadState(): AppState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as AppState;
-    // shallow migration safety
-    const base = defaultState(parsed.name || "Ravi");
-    return { ...base, ...parsed, habits: { ...base.habits, ...parsed.habits }, stats: { ...base.stats, ...parsed.stats } };
+    return sanitizeState(parsed);
   } catch {
     return defaultState();
   }
+}
+
+// Merge an arbitrary (possibly old or imported) state object onto a fresh
+// default so newly-added fields are always present and never undefined.
+export function sanitizeState(parsed: Partial<AppState>): AppState {
+  const base = defaultState(parsed.name || "Ravi");
+  const merged: AppState = {
+    ...base,
+    ...parsed,
+    habits: { ...base.habits, ...(parsed.habits || {}) },
+    stats: { ...base.stats, ...(parsed.stats || {}) },
+    settings: { ...base.settings, ...(parsed.settings || {}) },
+    history: parsed.history || {},
+    plans: parsed.plans || {},
+    reports: parsed.reports || {},
+    books: parsed.books || [],
+    bookChunks: parsed.bookChunks || {},
+    journal: parsed.journal || {},
+    freezeDays: Array.isArray(parsed.freezeDays) ? parsed.freezeDays : [],
+    version: STATE_VERSION,
+  };
+  // Recompute all derived values from history so XP/streaks/stats are always correct.
+  merged.totalXP = Object.values(merged.history).reduce((s, r) => s + (r.xpEarned || 0), 0);
+  merged.rankIndex = rankForXP(merged.totalXP).index;
+  recomputeDerived(merged);
+  return merged;
 }
 
 export function saveState(state: AppState) {
@@ -114,6 +148,19 @@ export function recomputeDerived(state: AppState) {
   state.stats = { STR: 0, INT: 0, WIL: 0, CHA: 0, VIT: 0, CRE: 0 };
 
   const dates = Object.keys(state.history).sort();
+  const frozen = new Set(state.freezeDays || []);
+
+  // A gap between two completion dates is "bridged" (doesn't break the streak)
+  // if EVERY calendar day strictly between them is a Streak Freeze day.
+  const bridged = (from: string, to: string): boolean => {
+    const gap = daysBetween(from, to);
+    if (gap <= 1) return true;
+    for (let k = 1; k < gap; k++) {
+      if (!frozen.has(addDays(from, k))) return false;
+    }
+    return true;
+  };
+
   for (const id of ALL_HABIT_IDS) {
     let streak = 0;
     let best = 0;
@@ -124,7 +171,7 @@ export function recomputeDerived(state: AppState) {
       const done = state.history[d].completed.includes(id);
       if (done) {
         total += 1;
-        if (prev && daysBetween(prev, d) === 1) streak += 1;
+        if (prev && bridged(prev, d)) streak += 1;
         else streak = 1;
         best = Math.max(best, streak);
         last = d;
@@ -133,11 +180,25 @@ export function recomputeDerived(state: AppState) {
         state.stats[stat] += 1;
       }
     }
-    // If the most recent completion isn't today/yesterday, current streak is broken
+    // Current streak is broken only if the stretch from the last completion to
+    // today is NOT fully covered by freeze days (today itself may still be open).
     const today = todayStr();
-    if (last && daysBetween(last, today) > 1) streak = 0;
+    if (last && daysBetween(last, today) > 1 && !bridged(last, today)) streak = 0;
     state.habits[id] = { streak, best, lastCompleted: last, totalDone: total };
   }
+}
+
+// ----- Streak Freeze economy -----
+// Earn 1 freeze for every 7 days on which at least one quest was completed.
+export function freezesEarned(state: AppState): number {
+  const activeDays = Object.values(state.history).filter((r) => r.completed.length > 0).length;
+  return Math.floor(activeDays / 7);
+}
+export function freezesAvailable(state: AppState): number {
+  return Math.max(0, freezesEarned(state) - (state.freezeDays?.length || 0));
+}
+export function isFrozen(state: AppState, date: string): boolean {
+  return (state.freezeDays || []).includes(date);
 }
 
 export function isCompleted(state: AppState, habitId: HabitId, date = todayStr()): boolean {

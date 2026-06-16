@@ -14,7 +14,12 @@ import WeeklyReportView from "@/components/WeeklyReportView";
 import BookManager from "@/components/BookManager";
 import CurriculumView from "@/components/CurriculumView";
 import Onboarding from "@/components/Onboarding";
+import JournalCard from "@/components/JournalCard";
+import FreezePanel from "@/components/FreezePanel";
+import BackupPanel from "@/components/BackupPanel";
+import ReminderToggle from "@/components/ReminderToggle";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
+import { isFrozen } from "@/lib/store";
 
 type Tab = "home" | "plan" | "curriculum" | "report" | "books";
 
@@ -65,7 +70,8 @@ export default function Home() {
     if (!ready || punishShown.current) return;
     const y = yesterdaySummary(state);
     const hasHistory = Object.keys(state.history).length > 0;
-    if (hasHistory && y.completed < y.total) {
+    // A Streak Freeze on yesterday shields you from the punishment.
+    if (hasHistory && y.completed < y.total && !isFrozen(state, y.date)) {
       const lk = "goggins" as const;
       setPunish({
         count: y.missed.length,
@@ -135,9 +141,13 @@ export default function Home() {
                 }
               />
               <StatBars state={state} />
+              <JournalCard />
+              <FreezePanel />
+              <ReminderToggle />
+              <BackupPanel />
               <button
                 onClick={() => {
-                  if (confirm("Reset all progress? This wipes your save.")) {
+                  if (confirm("Reset all progress? This wipes your save. (Export a backup first!)")) {
                     localStorage.removeItem("solo-onboarded");
                     reset();
                   }

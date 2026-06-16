@@ -9,6 +9,8 @@ import { mathsForDay } from "@/data/curriculum/maths";
 import { communicationForDay } from "@/data/curriculum/communication";
 import { gymForDay } from "@/data/curriculum/gym";
 import { dayNumber } from "@/lib/store";
+import { themeForDay } from "@/lib/themes";
+import { LEGENDS } from "@/lib/legends";
 
 const SECTIONS: { key: keyof DailyPlan; label: string; icon: string }[] = [
   { key: "gym", label: "Gym", icon: "🏋️" },
@@ -27,6 +29,10 @@ export default function DailyPlanView() {
   const [source, setSource] = useState<string>(existing?.generatedBy || "");
   const [err, setErr] = useState("");
 
+  const day = dayNumber(state);
+  const theme = themeForDay(day);
+  const themeLegend = LEGENDS[theme.legend];
+
   async function generate() {
     setLoading(true);
     setErr("");
@@ -35,8 +41,10 @@ export default function DailyPlanView() {
       const gym = gymForDay(day);
       const maths = mathsForDay(day);
       const comm = communicationForDay(day);
-      // retrieve book chunks relevant to today's focuses
-      const query = `${gym.focus} ${maths.title} skincare grooming ${comm.skill} discipline mindset`;
+      const theme = themeForDay(day);
+      // retrieve book chunks: theme-of-the-day terms (rotates across all 9 voices)
+      // PLUS today's concrete curriculum focuses, so every book gets airtime.
+      const query = `${theme.query} ${gym.focus} ${maths.title} ${comm.skill}`;
       const chunks = retrieve(query, 6);
       const res = await fetch("/api/plan", {
         method: "POST",
@@ -70,9 +78,19 @@ export default function DailyPlanView() {
             </span>
           )}
         </div>
-        <p className="text-sm text-mana-glow/70 mb-4">
+        <p className="text-sm text-mana-glow/70 mb-3">
           The System reads yesterday, your rank, your weak areas, and your books — then forges today's orders.
         </p>
+        <div
+          className="mb-4 rounded-xl p-3 border"
+          style={{ borderColor: `${themeLegend.color}55`, background: `${themeLegend.color}12` }}
+        >
+          <p className="title-font text-[10px] tracking-widest" style={{ color: themeLegend.color }}>
+            {theme.icon} THEME OF DAY {day} · {theme.label.toUpperCase()}
+          </p>
+          <p className="text-sm text-mana-glow/85 mt-0.5">{theme.intent}</p>
+          <p className="text-[10px] text-mana-glow/50 mt-1">Guided today by {themeLegend.name}</p>
+        </div>
         <button
           onClick={generate}
           disabled={loading}
