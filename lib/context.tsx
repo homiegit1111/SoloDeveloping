@@ -27,6 +27,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, []);
 
+  // Hydrate preloaded book chunks into memory on startup. They are intentionally
+  // NOT persisted to localStorage (see saveState), so we always re-fetch them here.
+  // This runs app-wide (not just on the Books tab) so the AI planner/report can
+  // always retrieve from them.
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const idx = await fetch("/books-data/index.json").then((r) => r.json());
+        const metas: BookMeta[] = [];
+        const chunks: Record<string, BookChunk[]> = {};
+        for (const b of idx.books) {
+          const data = await fetch(`/books-data/${b.file}`).then((r) => r.json());
+          metas.push({
+            slug: b.slug,
+            title: b.title,
+            author: b.author,
+            categories: b.categories,
+            pages: b.pages,
+            chunkCount: b.chunkCount,
+            preloaded: true,
+            active: true,
+          });
+          chunks[b.slug] = data.chunks;
+        }
+        if (cancelled) return;
+        setState((s) => {
+          // Preserve the user's active/inactive choice for already-known books.
+          const known = new Map(s.books.map((b) => [b.slug, b]));
+          const mergedMetas = metas.map((m) => {
+            const prev = known.get(m.slug);
+            return prev ? { ...m, active: prev.active } : m;
+          });
+          const uploaded = s.books.filter((b) => !b.preloaded);
+          return { ...s, books: [...mergedMetas, ...uploaded], bookChunks: { ...s.bookChunks, ...chunks } };
+        });
+      } catch {
+        /* preloaded books are optional — ignore fetch errors */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+
   useEffect(() => {
     if (ready) saveState(state);
   }, [state, ready]);

@@ -60,7 +60,27 @@ export function loadState(): AppState {
 
 export function saveState(state: AppState) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(state));
+  // Preloaded book chunks (Aristotle, Goggins, BBLS, etc.) can be several MB and
+  // are always re-fetchable from /books-data on load, so we never persist them —
+  // only uploaded books' chunks. This keeps us well under the ~5MB localStorage quota
+  // no matter how many preloaded books ship.
+  const preloadedSlugs = new Set(state.books.filter((b) => b.preloaded).map((b) => b.slug));
+  const slimChunks: Record<string, BookChunk[]> = {};
+  for (const [slug, chunks] of Object.entries(state.bookChunks)) {
+    if (!preloadedSlugs.has(slug)) slimChunks[slug] = chunks;
+  }
+  const toSave: AppState = { ...state, bookChunks: slimChunks };
+  try {
+    localStorage.setItem(KEY, JSON.stringify(toSave));
+  } catch (e) {
+    // QuotaExceededError or similar — retry once without any book chunks so the
+    // user's actual progress (habits/XP/streaks) is never lost.
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ ...toSave, bookChunks: {} }));
+    } catch {
+      /* give up silently — progress already in memory for this session */
+    }
+  }
 }
 
 // Recompute streaks/XP/stats from a habit toggle for a given date (today only).

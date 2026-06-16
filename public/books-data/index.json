@@ -52,6 +52,34 @@
       "chunkCount": 476,
       "file": "cant-hurt-me.json",
       "preloaded": true
+    },
+    {
+      "slug": "beyond-bigger-leaner-stronger",
+      "title": "Beyond Bigger Leaner Stronger",
+      "author": "Michael Matthews",
+      "categories": [
+        "gym",
+        "nutrition",
+        "habits"
+      ],
+      "pages": 348,
+      "chunkCount": 411,
+      "file": "beyond-bigger-leaner-stronger.json",
+      "preloaded": true
+    },
+    {
+      "slug": "no-more-mr-nice-guy",
+      "title": "No More Mr. Nice Guy",
+      "author": "Dr. Robert A. Glover",
+      "categories": [
+        "masculine",
+        "psychology",
+        "communication"
+      ],
+      "pages": 155,
+      "chunkCount": 273,
+      "file": "no-more-mr-nice-guy.json",
+      "preloaded": true
     }
   ]
 }

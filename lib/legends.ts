@@ -24,6 +24,7 @@ export const LEGENDS = {
   clear: { name: "James Clear", domain: "habits", color: "#6fd3ff" },
   goggins: { name: "David Goggins", domain: "toughness", color: "#ff4d5e" },
   aristotle: { name: "Aristotle", domain: "virtue", color: "#c9a44c" },
+  glover: { name: "Dr. Robert Glover", domain: "masculinity", color: "#5f9ea0" },
 } as const;
 
 export type LegendKey = keyof typeof LEGENDS;
@@ -85,6 +86,15 @@ export const LEGEND_LINES: Record<LegendKey, string[]> = {
     "It is well to be up before daybreak, for such habits contribute to health, wealth, and wisdom.",
     "Pleasure in the job puts perfection in the work. Love the discipline, not just the result.",
   ],
+  glover: [
+    "Stop seeking approval. The Nice Guy gives to get - drop the covert contracts and just be who you are.",
+    "Make your needs a priority. You teach people how to treat you by how you treat yourself.",
+    "If it frightens you, do it. Approach what you've been avoiding - that's where the man you want to be is waiting.",
+    "Set the boundary. Saying no to others is how you say yes to yourself.",
+    "Express what you feel and what you want, directly and without apology. Resentment is the price of hiding it.",
+    "Take full responsibility for your own life. Stop waiting for permission to become the integrated man.",
+    "Surround yourself with men who hold you accountable. You become your own man in the company of other men.",
+  ],
 };
 
 // Map a focus/habit to the legend that should coach it
@@ -97,6 +107,13 @@ export function legendForFocus(focus: string): LegendKey {
   if (f.includes("habit") || f.includes("streak") || f.includes("system")) return "clear";
   if (f.includes("pain") || f.includes("hard") || f.includes("tough") || f.includes("punish"))
     return "goggins";
+  if (
+    f.includes("social") || f.includes("communicat") || f.includes("boundary") ||
+    f.includes("boundaries") || f.includes("assert") || f.includes("confidence") ||
+    f.includes("relationship") || f.includes("dating") || f.includes("masculin") ||
+    f.includes("nice guy")
+  )
+    return "glover";
   if (
     f.includes("study") || f.includes("maths") || f.includes("math") || f.includes("learn") ||
     f.includes("wisdom") || f.includes("virtue") || f.includes("character") || f.includes("mind")
