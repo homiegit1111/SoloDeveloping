@@ -14,11 +14,13 @@ import HunterCanvas from "./HunterCanvas";
 
 export default function HunterStage({
   rank,
+  name,
   totalXP,
   condition = 0,
   penalty = false,
 }: {
   rank: Rank;
+  name?: string;
   totalXP: number;
   condition?: number;
   penalty?: boolean;
@@ -38,7 +40,7 @@ export default function HunterStage({
     : { label: "WEAKENED", color: "#ef4444" };
 
   return (
-    <div className="sys-window sys-corner relative overflow-hidden h-[58vh] min-h-[440px] lg:h-[72vh] lg:min-h-[560px]">
+    <div className="sys-window sys-corner relative overflow-hidden h-[54vh] min-h-[416px] lg:h-[72vh] lg:min-h-[560px]">
       <div className="scanline" />
 
       {/* full-bleed living Hunter — fills the entire stage */}
@@ -47,24 +49,33 @@ export default function HunterStage({
       </div>
 
       {/* top HUD — rank assessment + power */}
-      <div className="relative z-10 flex items-start justify-between px-5 pt-5 pointer-events-none">
-        <div>
-          <p className="label">SYSTEM · HUNTER ASSESSMENT</p>
+      <div className="relative z-10 flex items-start justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pointer-events-none">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="label">HUNTER</p>
+            {name ? (
+              <p className="term text-[11px] truncate max-w-[150px]" style={{ color: rank.color }}>
+                {name}
+              </p>
+            ) : null}
+          </div>
           <motion.h1
             key={rank.name}
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="title-font text-4xl lg:text-6xl mt-1 leading-none"
+            className="title-font text-[1.9rem] sm:text-4xl lg:text-6xl mt-1 leading-none"
             style={{ color: rank.color, textShadow: `0 0 26px ${rank.glow}` }}
           >
             {rank.name}
           </motion.h1>
-          <p className="mono text-xs lg:text-sm text-[#9aa6bd] italic mt-1">&ldquo;{rank.title}&rdquo;</p>
+          <p className="mono text-[11px] sm:text-xs lg:text-sm text-[#9aa6bd] italic mt-1 truncate">
+            &ldquo;{rank.title}&rdquo;
+          </p>
         </div>
-        <div className="text-right">
+        <div className="text-right shrink-0">
           <p className="label">POWER · XP</p>
           <p
-            className="num text-3xl lg:text-5xl mt-1 leading-none"
+            className="num text-2xl sm:text-3xl lg:text-5xl mt-1 leading-none"
             style={{ color: rank.color, textShadow: `0 0 18px ${rank.glow}` }}
           >
             {totalXP.toLocaleString()}

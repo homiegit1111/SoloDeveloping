@@ -159,9 +159,13 @@ export default function Home() {
       {/* ===== THE HUNTER — full-stage centerpiece. He IS the screen. ===== */}
       <HunterStage rank={rank} name={state.name} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
 
-      <p className="mono text-[12.5px] text-center text-[#8c97ab] px-3 lg:px-12 leading-snug max-w-xl mx-auto line-clamp-2">
-        {rank.description}
-      </p>
+      <div className="flex items-center gap-3 max-w-xl mx-auto px-2">
+        <span className="flex-1 h-px shrink" style={{ background: "var(--line)" }} />
+        <p className="mono text-[12px] sm:text-[12.5px] text-center text-[#9aa6bd] leading-snug">
+          {rank.description}
+        </p>
+        <span className="flex-1 h-px shrink" style={{ background: "var(--line)" }} />
+      </div>
 
       {/* ===== Functional panels below the Hunter ===== */}
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-5">
