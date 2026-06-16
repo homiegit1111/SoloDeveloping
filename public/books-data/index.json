@@ -1,0 +1,29 @@
+{
+  "books": [
+    {
+      "slug": "glow-from-within",
+      "title": "Glow From Within",
+      "author": "Joanna Vargas",
+      "categories": [
+        "skincare"
+      ],
+      "pages": 151,
+      "chunkCount": 124,
+      "file": "glow-from-within.json",
+      "preloaded": true
+    },
+    {
+      "slug": "manmade",
+      "title": "MANMADE: The Essential Skincare & Grooming Reference for Every Man",
+      "author": "Chris Salgardo",
+      "categories": [
+        "skincare",
+        "grooming"
+      ],
+      "pages": 251,
+      "chunkCount": 102,
+      "file": "manmade.json",
+      "preloaded": true
+    }
+  ]
+}

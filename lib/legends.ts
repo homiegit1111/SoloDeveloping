@@ -1,0 +1,101 @@
+import { LegendQuote } from "./types";
+
+// ============================================================
+// THE LEGENDS — each speaks in their own voice and domain.
+// These are the fallback/local voices. When AI is enabled and a
+// matching biography/psychology book is uploaded, the planner pulls
+// the legend's ACTUAL words from the book chunks instead.
+//
+// Domains:
+//   Arnold     -> gym / body
+//   Alexander  -> the battlefield of life / ambition
+//   Buddha     -> discipline / desire / the mind
+//   Marcus     -> discipline / stoic control
+//   Clear      -> habits / systems
+//   Goggins    -> pain / mental toughness (masculine)
+// ============================================================
+
+export const LEGENDS = {
+  arnold: { name: "Arnold Schwarzenegger", domain: "gym", color: "#f0a23b" },
+  alexander: { name: "Alexander the Great", domain: "ambition", color: "#3da9fc" },
+  buddha: { name: "Buddha", domain: "discipline", color: "#39d98a" },
+  marcus: { name: "Marcus Aurelius", domain: "discipline", color: "#a78bfa" },
+  clear: { name: "James Clear", domain: "habits", color: "#6fd3ff" },
+  goggins: { name: "David Goggins", domain: "toughness", color: "#ff4d5e" },
+} as const;
+
+export type LegendKey = keyof typeof LEGENDS;
+
+// Curated motivational lines per legend (used when no biography book chunk is
+// available yet). Replaced/augmented by real book text once uploaded.
+export const LEGEND_LINES: Record<LegendKey, string[]> = {
+  arnold: [
+    "The last three or four reps is what makes the muscle grow. That area of pain divides a champion from someone who is not a champion.",
+    "Strength does not come from winning. Your struggles develop your strengths.",
+    "The mind is the limit. As long as the mind can envision that you can do something, you can do it.",
+    "You can't climb the ladder of success with your hands in your pockets. Go to the gym. Today.",
+    "Milk is for babies. When you grow up you have to drink beer — no, you have to lift heavy and eat clean.",
+  ],
+  alexander: [
+    "There is nothing impossible to him who will try. The battlefield is your day — fight it.",
+    "I am not afraid of an army of lions led by a sheep; I am afraid of an army of sheep led by a lion. Lead yourself.",
+    "Through every generation of the human race there has been a constant war — a war with fear. Conquer yours today.",
+    "Remember: upon the conduct of each depends the fate of all. Your discipline today writes your empire.",
+    "Holding back is how empires are lost. Move. Take the ground in front of you.",
+  ],
+  buddha: [
+    "You yourself, as much as anybody in the entire universe, deserve your love and affection — so train, don't punish.",
+    "It is a man's own mind, not his enemy or foe, that lures him to evil ways. Watch the urge; do not feed it.",
+    "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+    "The mind is everything. What you think, you become. Think discipline, become disciplined.",
+    "Drop by drop is the water pot filled. Drop by drop is the man rebuilt.",
+  ],
+  marcus: [
+    "You have power over your mind — not outside events. Realise this, and you will find strength.",
+    "Waste no more time arguing about what a good man should be. Be one.",
+    "The impediment to action advances action. What stands in the way becomes the way. The missed day becomes the lesson.",
+    "At dawn, when you have trouble getting out of bed, tell yourself: I have to go to work — as a human being.",
+    "Confine yourself to the present. The work of this single day decides the man.",
+  ],
+  clear: [
+    "You do not rise to the level of your goals. You fall to the level of your systems. Trust the daily quests.",
+    "Every action you take is a vote for the type of person you wish to become. Cast a good vote today.",
+    "Habits are the compound interest of self-improvement. 1% better every day.",
+    "You should be far more concerned with your current trajectory than with your current results.",
+    "Never miss twice. Missing once is an accident. Missing twice is the start of a new (bad) habit.",
+  ],
+  goggins: [
+    "You are stopping at 40% of what you're capable of. Reach for the other 60% today.",
+    "The most important conversation is the one you have with yourself. Don't lie to yourself tonight.",
+    "Motivation is crap. Motivation comes and goes. When you're driven, whatever is in front of you gets demolished.",
+    "Suffering is the true test of life. Stay hard.",
+    "You will never learn from people if you always tap dance around the truth. The truth: you can do more.",
+  ],
+};
+
+// Map a focus/habit to the legend that should coach it
+export function legendForFocus(focus: string): LegendKey {
+  const f = focus.toLowerCase();
+  if (f.includes("gym") || f.includes("body") || f.includes("train") || f.includes("strength"))
+    return "arnold";
+  if (f.includes("disciplin") || f.includes("urge") || f.includes("fap") || f.includes("control"))
+    return Math.random() > 0.5 ? "marcus" : "buddha";
+  if (f.includes("habit") || f.includes("streak") || f.includes("system")) return "clear";
+  if (f.includes("pain") || f.includes("hard") || f.includes("tough") || f.includes("punish"))
+    return "goggins";
+  return "alexander";
+}
+
+export function pick<T>(arr: T[], seed: number): T {
+  return arr[Math.abs(seed) % arr.length];
+}
+
+export const ALL_QUOTES: LegendQuote[] = (
+  Object.keys(LEGENDS) as LegendKey[]
+).flatMap((k) =>
+  LEGEND_LINES[k].map((text) => ({
+    legend: LEGENDS[k].name,
+    domain: LEGENDS[k].domain,
+    text,
+  }))
+);
