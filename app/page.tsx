@@ -157,7 +157,7 @@ export default function Home() {
   const homeContent = (
     <>
       {/* ===== THE HUNTER — full-stage centerpiece. He IS the screen. ===== */}
-      <HunterStage rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
+      <HunterStage rank={rank} name={state.name} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
 
       <p className="mono text-[12.5px] text-center text-[#8c97ab] px-3 lg:px-12 leading-snug max-w-xl mx-auto line-clamp-2">
         {rank.description}
@@ -228,20 +228,15 @@ export default function Home() {
 
       {/* ===== Main column ===== */}
       <div className="lg:pl-[244px]">
-        <header className="lg:hidden flex items-center justify-between px-4 pt-5 pb-3 max-w-md mx-auto">
-          <div>
+        <header className="lg:hidden flex items-center justify-between gap-3 px-4 pt-5 pb-3 max-w-md mx-auto">
+          <div className="min-w-0">
             <p className="label">SOLO·DEVELOPING</p>
-            <p className="title-font text-lg text-glow" style={{ color: "var(--rank)" }}>
-              DAY <span className="num">{day}</span> / 90
+            <p className="title-font text-lg text-glow leading-none mt-1" style={{ color: "var(--rank)" }}>
+              DAY <span className="num">{day}</span>
+              <span className="opacity-40 text-sm"> / 90</span>
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <HeaderTools compact />
-            <div className="text-right">
-              <p className="label">{state.name}</p>
-              <p className="num text-[13px]" style={{ color: rank.color }}>{rank.name}</p>
-            </div>
-          </div>
+          <HeaderTools compact />
         </header>
 
         <header className="hidden lg:flex items-center justify-between px-8 pt-7 pb-4 max-w-[1200px] mx-auto">
