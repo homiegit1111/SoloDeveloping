@@ -11,10 +11,13 @@ import StatBars from "@/components/StatBars";
 import HabitTracker from "@/components/HabitTracker";
 import DailyPlanView from "@/components/DailyPlanView";
 import WeeklyReportView from "@/components/WeeklyReportView";
+import LibraryView from "@/components/LibraryView";
+import LessonCard from "@/components/LessonCard";
 import Onboarding from "@/components/Onboarding";
 import JournalCard from "@/components/JournalCard";
 import FreezePanel from "@/components/FreezePanel";
 import BackupPanel from "@/components/BackupPanel";
+import CloudSyncPanel from "@/components/CloudSyncPanel";
 import ReminderToggle from "@/components/ReminderToggle";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
 import RankUpCeremony from "@/components/RankUpCeremony";
@@ -22,11 +25,12 @@ import { isFrozen } from "@/lib/store";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
 
-type Tab = "home" | "plan" | "report";
+type Tab = "home" | "plan" | "library" | "report";
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
   { id: "home", label: "HQ", sub: "Status" },
   { id: "plan", label: "Plan", sub: "Today" },
+  { id: "library", label: "Codex", sub: "Books" },
   { id: "report", label: "Report", sub: "Weekly" },
 ];
 
@@ -34,6 +38,12 @@ export default function Home() {
   const { state, ready, reset, update } = useApp();
   const [tab, setTab] = useState<Tab>("home");
   const [started, setStarted] = useState(false);
+  const [libSlug, setLibSlug] = useState<string | null>(null);
+
+  const openLibrary = (slug: string) => {
+    setLibSlug(slug);
+    setTab("library");
+  };
 
   const [reward, setReward] = useState<{ title: string; subtitle: string; quote?: string } | null>(null);
   const [punish, setPunish] = useState<{ count: number; quote: string; legend: string } | null>(null);
@@ -152,7 +162,7 @@ export default function Home() {
       {/* ===== THE HUNTER — full-stage centerpiece. He IS the screen. ===== */}
       <HunterStage rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
 
-      <p className="mono text-[15px] text-center text-[#c2ccdb] px-2 lg:px-12 leading-relaxed max-w-2xl mx-auto">
+      <p className="mono text-[12.5px] text-center text-[#8c97ab] px-3 lg:px-12 leading-snug max-w-xl mx-auto line-clamp-2">
         {rank.description}
       </p>
 
@@ -171,14 +181,16 @@ export default function Home() {
         </div>
         <div className="lg:col-span-5 space-y-4">
           <StatBars state={state} />
+          <LessonCard onOpenLibrary={openLibrary} />
           <JournalCard />
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
         <FreezePanel />
         <ReminderToggle />
         <BackupPanel />
+        <CloudSyncPanel />
       </div>
       <div className="flex justify-center lg:justify-end gap-5 pt-1">
         {soundBtn}
@@ -266,6 +278,7 @@ export default function Home() {
             >
               {tab === "home" && homeContent}
               {tab === "plan" && <DailyPlanView />}
+              {tab === "library" && <LibraryView initialSlug={libSlug} clearInitial={() => setLibSlug(null)} />}
               {tab === "report" && <div className="lg:max-w-3xl"><WeeklyReportView /></div>}
             </motion.div>
           </AnimatePresence>
@@ -274,24 +287,33 @@ export default function Home() {
 
       {/* ===== Mobile bottom nav ===== */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
-        <div className="max-w-md mx-auto px-3 pb-3">
-          <div className="glass-strong flex justify-around py-2">
-            {TABS.map((t) => {
-              const Icon = NAV_ICON[t.id];
-              const active = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  className="flex flex-col items-center gap-1 px-3 py-1 transition-colors"
-                  style={{ color: active ? "var(--rank)" : "rgba(150,160,180,0.5)" }}
-                >
-                  <Icon size={21} style={{ filter: active ? "drop-shadow(0 0 6px var(--rank))" : "none" }} />
-                  <span className="title-font text-[10px]">{t.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div
+          className="flex justify-around items-stretch px-1 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] border-t backdrop-blur-xl"
+          style={{ borderColor: "var(--line-strong)", background: "rgba(4,5,11,0.92)" }}
+        >
+          {TABS.map((t) => {
+            const Icon = NAV_ICON[t.id];
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-label={t.label}
+                className="relative flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors"
+                style={{ color: active ? "var(--rank)" : "rgba(150,160,180,0.55)" }}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="mnav"
+                    className="absolute top-0 h-[2px] w-8 rounded-full"
+                    style={{ background: "var(--rank)", boxShadow: "0 0 10px var(--rank)" }}
+                  />
+                )}
+                <Icon size={20} style={{ filter: active ? "drop-shadow(0 0 6px var(--rank))" : "none" }} />
+                <span className="title-font text-[10px] tracking-wide">{t.label}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 

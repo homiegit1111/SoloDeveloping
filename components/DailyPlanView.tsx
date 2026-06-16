@@ -97,8 +97,8 @@ export default function DailyPlanView() {
           <p className="title-font text-[11px] tracking-widest" style={{ color: "var(--rank)" }}>
             DIAGNOSIS — {PHASE_LABEL[dx.phase] || dx.phase.toUpperCase()} · {dx.archetype.toUpperCase()}
           </p>
-          <p className="mono text-sm text-[#ddd6c4] mt-0.5">{dx.summary}</p>
-          <p className="mono text-[11px] text-[#a59a82] mt-1.5">
+          <p className="mono text-[14px] text-[#e2d8c0] mt-1 leading-relaxed">{dx.summary}</p>
+          <p className="mono text-[12px] text-[#a89e86] mt-2">
             Gym stage: {dx.gymStage} · 7-day: {dx.completion7}% · mentors: {dx.activeMentors.slice(0, 4).join(", ")}
           </p>
         </div>
@@ -149,17 +149,27 @@ export default function DailyPlanView() {
               <button
                 key={s.key as string}
                 onClick={() => setOpenSection(isOpen ? null : (s.key as string))}
-                className="dossier p-4 w-full text-left block"
+                data-open={isOpen}
+                className="dossier p-4 w-full text-left block border-l-2 transition-colors"
+                style={{ borderColor: isOpen ? "var(--rank)" : "color-mix(in srgb, var(--rank) 25%, transparent)" }}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <p className="label !text-[#b59b6a]">{s.code}</p>
-                  <span className="mono text-xs text-[#a59a82]">{isOpen ? "▾" : "▸"}</span>
+                  <span
+                    className="term text-[9px] px-2 py-0.5 border rounded-sm whitespace-nowrap"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--rank) 40%, transparent)",
+                      color: isOpen ? "var(--rank)" : "#a59a82",
+                    }}
+                  >
+                    {isOpen ? "CLOSE ▾" : "TAP TO READ ▸"}
+                  </span>
                 </div>
-                <p className="mono text-sm text-[#ece3cf] font-bold mt-1">{block.title}</p>
+                <p className="mono text-[15px] text-[#f1ead8] font-semibold mt-1.5 leading-snug">{block.title}</p>
                 <motion.div initial={false} animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }} className="overflow-hidden">
-                  <p className="mono text-sm text-[#b9b29e] whitespace-pre-line leading-relaxed mt-2">{block.detail}</p>
+                  <p className="mono text-[14px] text-[#d4cab0] whitespace-pre-line leading-relaxed mt-2.5">{block.detail}</p>
                   {src && (
-                    <p className="mono text-[10px] text-[#7e7561] mt-2">SOURCE · {src.author} — {src.book}</p>
+                    <p className="label !tracking-[0.1em] !text-[#7e7561] mt-2.5">SOURCE · {src.author} — {src.book}</p>
                   )}
                 </motion.div>
               </button>

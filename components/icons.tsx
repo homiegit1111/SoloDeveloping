@@ -158,5 +158,6 @@ export const NAV_ICON: Record<string, (p: P) => JSX.Element> = {
   plan: IconPlan,
   curriculum: IconTrain,
   report: IconReport,
+  library: IconBooks,
   books: IconBooks,
 };
