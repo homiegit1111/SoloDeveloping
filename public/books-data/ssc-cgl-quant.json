@@ -1,0 +1,325 @@
+{
+ "slug": "ssc-cgl-quant",
+ "title": "Quantitative Aptitude for SSC CGL",
+ "author": "SSC CGL Quant Reference",
+ "categories": [
+  "maths",
+  "study"
+ ],
+ "pages": 26,
+ "chunkCount": 26,
+ "chunks": [
+  {
+   "id": "ssc-cgl-quant-0",
+   "book": "ssc-cgl-quant",
+   "page": 1,
+   "text": "Number System — HCF & LCM. The HCF (Highest Common Factor) of two numbers is the largest number that divides both. The LCM (Least Common Multiple) is the smallest number divisible by both. Key relation: HCF × LCM = product of the two numbers. To find HCF use prime factorisation or the division method; for LCM take the highest power of every prime that appears. Worked example: HCF of 24 and 36 — 24 = 2^3·3, 36 = 2^2·3^2, common = 2^2·3 = 12. LCM = 2^3·3^2 = 72. Check: 12×72 = 864 = 24×36.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-1",
+   "book": "ssc-cgl-quant",
+   "page": 2,
+   "text": "Number System — Divisibility & Remainders. Divisibility rules speed up SSC CGL arithmetic: by 3 if digit-sum divisible by 3; by 4 if last two digits divisible by 4; by 8 if last three; by 9 if digit-sum divisible by 9; by 11 if the alternating digit-sum is 0 or a multiple of 11. Remainder theorem: when a number N is divided by d, N = dq + r with 0 ≤ r < d. Worked example: remainder when 7^100 is divided by 5 — 7 ≡ 2 (mod 5), and 2^4 ≡ 1, so 2^100 = (2^4)^25 ≡ 1. Remainder = 1.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-2",
+   "book": "ssc-cgl-quant",
+   "page": 3,
+   "text": "Number System — Unit Digit & Factors. The unit (last) digit of a^n cycles with period 1, 2 or 4. Powers of 2 cycle 2,4,8,6; of 3 cycle 3,9,7,1; of 7 cycle 7,9,3,1. Number of factors of N = product of (exponent+1) over its prime factorisation. Worked example: factors of 72 = 2^3·3^2 → (3+1)(2+1) = 12 factors. Unit digit of 7^53: 53 mod 4 = 1 → 7.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-3",
+   "book": "ssc-cgl-quant",
+   "page": 4,
+   "text": "Percentage — Core. Percentage means 'per hundred': x% = x/100. To find x% of N, compute Nx/100. Fraction equivalents save time: 1/2=50%, 1/4=25%, 1/5=20%, 1/8=12.5%, 1/3≈33.33%, 1/6≈16.67%. Worked example: 25% of 240 = 240×25/100 = 60.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-4",
+   "book": "ssc-cgl-quant",
+   "page": 5,
+   "text": "Percentage — Increase, Decrease & Net Change. If a value increases by a% then decreases by b%, the net change = a − b − ab/100 (%). A successive increase of x% twice gives net 2x + x^2/100 (%). To reverse a p% increase you must decrease by 100p/(100+p)%. Worked example: a number increased by 20% becomes 96, so original = 96/1.20 = 80.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-5",
+   "book": "ssc-cgl-quant",
+   "page": 6,
+   "text": "Ratio & Proportion. A ratio a:b compares quantities; a proportion states a:b = c:d, i.e. ad = bc (product of means = product of extremes). To combine a:b and b:c, scale b to match: if a:b = 2:3 and b:c = 4:5, write 8:12 and 12:15 → a:c = 8:15. Mean proportional between a and b is √(ab). Worked example: divide 600 in ratio 2:3 → 2/5·600 = 240 and 3/5·600 = 360.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-6",
+   "book": "ssc-cgl-quant",
+   "page": 7,
+   "text": "Average. Average = (sum of observations)/(number of observations); so sum = average × count. Adding/removing a value shifts the average. Average of first n natural numbers = (n+1)/2. Worked example: the average of 5 numbers is 18, so their sum is 18×5 = 90. The average of 10, 20, 30, 40 is 100/4 = 25.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-7",
+   "book": "ssc-cgl-quant",
+   "page": 8,
+   "text": "Profit, Loss & Discount. Profit = SP − CP; Loss = CP − SP. Profit% and Loss% are always on cost price: Profit% = (Profit/CP)×100. Selling price after discount: SP = MP × (1 − d/100), where MP is marked price and d the discount%. Worked example: CP = 200, SP = 250 → profit = 50, profit% = 50/200×100 = 25%. Marked price 500 with 10% discount → SP = 500×0.90 = 450.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-8",
+   "book": "ssc-cgl-quant",
+   "page": 9,
+   "text": "Profit & Loss — Successive & False Weight. Two successive discounts of a% and b% combine to a + b − ab/100 (%). A dishonest dealer using false weight gains: gain% = error/(true value − error) × 100. Worked example: successive discounts of 20% and 10% = 20 + 10 − 2 = 28% total discount, not 30%. Selling at cost price but giving 800 g for a kg → gain% = 200/800×100 = 25%.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-9",
+   "book": "ssc-cgl-quant",
+   "page": 10,
+   "text": "Simple Interest. Simple Interest SI = P·R·T/100, where P = principal, R = rate% per annum, T = time in years. The amount A = P + SI. SI is the same each year. Worked example: SI on ₹1000 at 5% p.a. for 2 years = 1000×5×2/100 = ₹100, so amount = ₹1100.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-10",
+   "book": "ssc-cgl-quant",
+   "page": 11,
+   "text": "Compound Interest. Compound Interest: Amount A = P(1 + R/100)^T, and CI = A − P. When compounded for 2 years, CI = P[(1+R/100)^2 − 1]. The difference between CI and SI for 2 years = P(R/100)^2. Worked example: CI on ₹1000 at 10% p.a. for 2 years = 1000×(1.1^2 − 1) = 1000×0.21 = ₹210; SI would be ₹200, difference ₹10 = 1000×(0.1)^2.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-11",
+   "book": "ssc-cgl-quant",
+   "page": 12,
+   "text": "Time, Speed & Distance. Speed = Distance/Time. Convert km/h to m/s by multiplying by 5/18; m/s to km/h by 18/5. For equal distances at speeds u and v, average speed = 2uv/(u+v) (harmonic mean). Worked example: a car covers 150 km in 3 h → speed 50 km/h. 72 km/h = 72×5/18 = 20 m/s.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-12",
+   "book": "ssc-cgl-quant",
+   "page": 13,
+   "text": "Trains, Boats & Streams. A train crossing a pole travels its own length; crossing a platform travels (length + platform). Relative speed: same direction = difference, opposite = sum. Boats: downstream speed = b + s, upstream = b − s, where b = boat speed, s = stream speed; so b = (down+up)/2, s = (down−up)/2. Worked example: a 180 m train at 36 km/h (=10 m/s) crosses a pole in 18 s.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-13",
+   "book": "ssc-cgl-quant",
+   "page": 14,
+   "text": "Time & Work. If A finishes a job in a days, A's one-day work = 1/a. Together A and B do 1/a + 1/b per day, so time = ab/(a+b). Work is constant: M1·D1 = M2·D2 for men and days (more men, fewer days). Worked example: A in 10 days, B in 15 days → together 1/10 + 1/15 = 1/6, i.e. 6 days. 12 men take 8 days → 16 men take 12×8/16 = 6 days.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-14",
+   "book": "ssc-cgl-quant",
+   "page": 15,
+   "text": "Pipes & Cisterns. An inlet pipe filling a tank in x hours does +1/x per hour; an outlet (leak) emptying in y hours does −1/y. Net rate = sum of signed rates; time = 1/net. Worked example: pipe A fills in 6 h (+1/6), pipe B empties in 12 h (−1/12). Net = 1/6 − 1/12 = 1/12, so the tank fills in 12 hours.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-15",
+   "book": "ssc-cgl-quant",
+   "page": 16,
+   "text": "Mixture & Alligation. Alligation finds the ratio in which two ingredients at prices (or concentrations) are mixed to get a mean value: (cheaper:dearer) = (dearer − mean):(mean − cheaper). Repeated replacement: after removing and replacing x from a vessel of V, n times, pure quantity = V(1 − x/V)^n. Worked example: mix rice at ₹20 and ₹30 to get ₹24 → (30−24):(24−20) = 6:4 = 3:2.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-16",
+   "book": "ssc-cgl-quant",
+   "page": 17,
+   "text": "Algebra — Identities. Memorise: (a+b)^2 = a^2 + 2ab + b^2; (a−b)^2 = a^2 − 2ab + b^2; a^2 − b^2 = (a+b)(a−b); (a+b)^3 = a^3 + b^3 + 3ab(a+b); a^3 + b^3 = (a+b)(a^2 − ab + b^2); a^3 + b^3 + c^3 − 3abc = (a+b+c)(a^2+b^2+c^2 − ab−bc−ca). Worked example: (a+b)^2 − (a−b)^2 = 4ab.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-17",
+   "book": "ssc-cgl-quant",
+   "page": 18,
+   "text": "Algebra — Conditional Expressions. SSC favours 'if x + 1/x = k' problems. Then x^2 + 1/x^2 = k^2 − 2 and x^3 + 1/x^3 = k^3 − 3k. If x − 1/x = k then x^2 + 1/x^2 = k^2 + 2. Worked example: x + 1/x = 3 → x^2 + 1/x^2 = 9 − 2 = 7, and x^3 + 1/x^3 = 27 − 9 = 18.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-18",
+   "book": "ssc-cgl-quant",
+   "page": 19,
+   "text": "Algebra — Linear & Quadratic Equations. Solve a linear equation by isolating the variable. A quadratic ax^2 + bx + c = 0 has roots x = [−b ± √(b^2 − 4ac)]/2a; sum of roots = −b/a, product = c/a. Worked example: x^2 − 5x + 6 = 0 factors as (x−2)(x−3) = 0 → x = 2 or 3. Solve 3x + 5 = 20 → x = 5.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-19",
+   "book": "ssc-cgl-quant",
+   "page": 20,
+   "text": "Geometry — Lines & Triangles. Angles on a straight line sum to 180°; angles of a triangle sum to 180°. An exterior angle equals the sum of the two opposite interior angles. In a right triangle, Pythagoras: hypotenuse^2 = base^2 + height^2 (common triples 3-4-5, 5-12-13). Worked example: angles 50° and 60° in a triangle → third angle = 180 − 110 = 70°.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-20",
+   "book": "ssc-cgl-quant",
+   "page": 21,
+   "text": "Geometry — Circles & Centres. The angle subtended by an arc at the centre is twice that at the circumference. The angle in a semicircle is 90°. Tangent ⟂ radius at the point of contact; two tangents from an external point are equal. A triangle's centroid divides each median 2:1; incentre is the meeting of angle bisectors. Worked example: if a central angle is 80°, the inscribed angle on the same arc is 40°.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-21",
+   "book": "ssc-cgl-quant",
+   "page": 22,
+   "text": "Mensuration — 2D. Area: rectangle = l·b; square = a^2; triangle = ½·base·height; circle = πr^2; circumference = 2πr. Equilateral triangle area = (√3/4)a^2. Use π = 22/7 for SSC. Worked example: area of a circle of radius 7 = 22/7 × 49 = 154; area of a 6×4 rectangle = 24.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-22",
+   "book": "ssc-cgl-quant",
+   "page": 23,
+   "text": "Mensuration — 3D. Cube: volume = a^3, surface = 6a^2. Cuboid: volume = lbh, surface = 2(lb+bh+hl). Cylinder: volume = πr^2h, curved surface = 2πrh. Sphere: volume = 4/3·πr^3, surface = 4πr^2. Cone: volume = 1/3·πr^2h. Worked example: volume of a cube of side 5 = 125; volume of a cylinder r=7, h=10 = 22/7×49×10 = 1540.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-23",
+   "book": "ssc-cgl-quant",
+   "page": 24,
+   "text": "Trigonometry — Ratios & Values. In a right triangle sinθ = opp/hyp, cosθ = adj/hyp, tanθ = opp/adj; cosec, sec, cot are their reciprocals. Standard values: sin0=0, sin30=½, sin45=1/√2, sin60=√3/2, sin90=1; cos reverses these. tan45 = 1. Worked example: sin30° + cos60° = ½ + ½ = 1; tanθ = 1 → θ = 45°.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-24",
+   "book": "ssc-cgl-quant",
+   "page": 25,
+   "text": "Trigonometry — Identities & Heights. Key identities: sin^2θ + cos^2θ = 1; 1 + tan^2θ = sec^2θ; 1 + cot^2θ = cosec^2θ. Heights & distances use angle of elevation/depression with tan = height/base. Worked example: from a point 10 m from a tower the top is seen at 45°, so height = 10·tan45° = 10 m. If the angle were 60°, height = 10√3 m.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  },
+  {
+   "id": "ssc-cgl-quant-25",
+   "book": "ssc-cgl-quant",
+   "page": 26,
+   "text": "Data Interpretation. DI presents data as tables, bar graphs, line graphs or pie charts; each pie sector's value = (percentage/100) × total, and degrees = (percentage/100) × 360. Read carefully, compute the asked quantity, and use percentage/average/ratio tools. Worked example: a pie chart allots 25% to rent on an income of ₹40000 → rent = 0.25×40000 = ₹10000; sales of 200,300,400,500 over 4 years total 1400.",
+   "tags": [
+    "maths",
+    "study",
+    "ssc",
+    "ssc-cgl"
+   ]
+  }
+ ]
+}

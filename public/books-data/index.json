@@ -124,16 +124,16 @@
       "preloaded": true
     },
     {
-      "slug": "review-of-algebra",
-      "title": "A Review of Algebra",
-      "author": "Romeyn Henry Rivenburg",
+      "slug": "ssc-cgl-quant",
+      "title": "Quantitative Aptitude for SSC CGL",
+      "author": "SSC CGL Quant Reference",
       "categories": [
         "maths",
         "study"
       ],
-      "pages": 50,
-      "chunkCount": 80,
-      "file": "review-of-algebra.json",
+      "pages": 26,
+      "chunkCount": 26,
+      "file": "ssc-cgl-quant.json",
       "preloaded": true
     }
   ]

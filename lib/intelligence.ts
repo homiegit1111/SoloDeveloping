@@ -71,50 +71,70 @@ function gymBlock(dx: Diagnosis, gym: Passage[]) {
   };
 }
 
-// ---- MATHS: ladder tied to reps actually done, grounded in the algebra book + Aristotle ----
+// ---- MATHS: SSC CGL / government-exam ladder, tied to reps actually done, grounded in the SSC quant book + Aristotle ----
 const MATHS_LADDER: { topic: string; practice: { q: string; a: string }[] }[] = [
-  { topic: "Fundamentals & Definitions", practice: [
-    { q: "Name the coefficient and exponent in 7x^3", a: "coefficient 7, exponent 3" },
-    { q: "Evaluate 3a + 2b when a = 4, b = 5", a: "22" },
+  { topic: "Number System (HCF, LCM, Divisibility)", practice: [
+    { q: "Find the HCF of 24 and 36", a: "12" },
+    { q: "Find the LCM of 6 and 8", a: "24" },
   ] },
-  { topic: "Operations with Signed Numbers", practice: [
-    { q: "Simplify (-6) + (+10) - (-3)", a: "7" },
-    { q: "Simplify -8 - 5 + 12", a: "-1" },
-  ] },
-  { topic: "Special Products & Factoring", practice: [
-    { q: "Factor x^2 - 9", a: "(x - 3)(x + 3)" },
-    { q: "Expand (x + 5)^2", a: "x^2 + 10x + 25" },
-  ] },
-  { topic: "Fractions in Lowest Terms", practice: [
-    { q: "Reduce 12x^2 / 18x", a: "2x / 3" },
-    { q: "Add 1/3 + 1/4", a: "7/12" },
-  ] },
-  { topic: "Linear Equations", practice: [
-    { q: "Solve 3x + 5 = 20", a: "x = 5" },
-    { q: "Solve 2(x - 4) = 10", a: "x = 9" },
-  ] },
-  { topic: "Simultaneous Equations", practice: [
-    { q: "Solve x + y = 10 and x - y = 4", a: "x = 7, y = 3" },
-    { q: "Solve 2x + y = 11 and x = y + 1", a: "x = 4, y = 3" },
-  ] },
-  { topic: "Quadratic Equations", practice: [
-    { q: "Solve x^2 - 5x + 6 = 0", a: "x = 2 or x = 3" },
-    { q: "Solve x^2 = 49", a: "x = 7 or x = -7" },
+  { topic: "Percentage", practice: [
+    { q: "What is 25% of 240?", a: "60" },
+    { q: "A number increased by 20% becomes 96. Find the number", a: "80" },
   ] },
   { topic: "Ratio & Proportion", practice: [
-    { q: "If 3 : 4 = x : 20, find x", a: "x = 15" },
-    { q: "Find the mean proportional between 4 and 9", a: "6" },
+    { q: "Divide 600 in the ratio 2 : 3", a: "240 and 360" },
+    { q: "If a : b = 2 : 3 and b : c = 4 : 5, find a : c", a: "8 : 15" },
   ] },
-  { topic: "Arithmetical & Geometrical Progression", practice: [
-    { q: "Find the 5th term of 2, 5, 8, …", a: "14" },
-    { q: "Find the sum of the first 4 terms of 3, 6, 12, …", a: "45" },
+  { topic: "Average", practice: [
+    { q: "Find the average of 10, 20, 30, 40", a: "25" },
+    { q: "The average of 5 numbers is 18. Find their sum", a: "90" },
+  ] },
+  { topic: "Profit, Loss & Discount", practice: [
+    { q: "CP = 200, SP = 250. Find profit %", a: "25%" },
+    { q: "Marked price 500 with a 10% discount. Find the selling price", a: "450" },
+  ] },
+  { topic: "Simple & Compound Interest", practice: [
+    { q: "Find SI on ₹1000 at 5% p.a. for 2 years", a: "₹100" },
+    { q: "Find CI on ₹1000 at 10% p.a. for 2 years", a: "₹210" },
+  ] },
+  { topic: "Time, Speed & Distance", practice: [
+    { q: "A car travels 150 km in 3 hours. Find its speed", a: "50 km/h" },
+    { q: "Convert 72 km/h to m/s", a: "20 m/s" },
+  ] },
+  { topic: "Time & Work", practice: [
+    { q: "A finishes a job in 10 days, B in 15 days. Together they take?", a: "6 days" },
+    { q: "12 men finish a job in 8 days. How many days for 16 men?", a: "6 days" },
+  ] },
+  { topic: "Mixture & Alligation", practice: [
+    { q: "In what ratio mix rice at ₹20/kg and ₹30/kg to get ₹24/kg?", a: "3 : 2" },
+    { q: "A 40-litre mixture has milk : water = 3 : 1. Litres of water?", a: "10" },
+  ] },
+  { topic: "Algebra (Identities & Equations)", practice: [
+    { q: "If x + 1/x = 3, find x^2 + 1/x^2", a: "7" },
+    { q: "Solve x^2 - 5x + 6 = 0", a: "x = 2 or x = 3" },
+  ] },
+  { topic: "Geometry", practice: [
+    { q: "Two angles of a triangle are 50° and 60°. Find the third", a: "70°" },
+    { q: "An inscribed angle is half of which angle on the same arc?", a: "the central angle" },
+  ] },
+  { topic: "Mensuration", practice: [
+    { q: "Area of a circle with radius 7 (use π = 22/7)", a: "154" },
+    { q: "Volume of a cube with side 5", a: "125" },
+  ] },
+  { topic: "Trigonometry", practice: [
+    { q: "Find sin 30° + cos 60°", a: "1" },
+    { q: "If tan θ = 1 (0°–90°), find θ", a: "45°" },
+  ] },
+  { topic: "Data Interpretation", practice: [
+    { q: "A pie chart allots 25% to rent on an income of ₹40000. Rent = ?", a: "₹10000" },
+    { q: "Sales over 4 years were 200, 300, 400, 500. Total sales?", a: "1400" },
   ] },
 ];
 
 function mathsBlock(dx: Diagnosis, study: Passage[]) {
   const i = Math.min(MATHS_LADDER.length - 1, dx.studyLevel);
   const rung = MATHS_LADDER[i];
-  const algebra = study.find((p) => p.mentor === "rivenburg") || study[0];
+  const algebra = study.find((p) => p.mentor === "ssc") || study[0];
   const aristotle = study.find((p) => p.mentor === "aristotle");
   const practice = rung.practice.map((p, n) => `${n + 1}. ${p.q}   (ans: ${p.a})`).join("\n");
   const detail =
