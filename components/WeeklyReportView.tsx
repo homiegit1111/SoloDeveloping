@@ -32,7 +32,7 @@ export default function WeeklyReportView() {
       if (data.report) {
         setReport(data.report);
         saveReport(data.report);
-        if (data.aiError) setErr(`AI unavailable. Showing local report.`);
+        if (data.aiError) setErr(`AI unavailable — showing the System's grounded report.`);
       } else setErr(data.error || "Failed");
     } catch (e: any) {
       setErr(e?.message || "Network error");
@@ -41,47 +41,69 @@ export default function WeeklyReportView() {
     }
   }
 
-  const rows: { label: string; key: keyof WeeklyReport; icon: string }[] = [
-    { label: "Physical", key: "physical", icon: "" },
-    { label: "Mental", key: "mental", icon: "" },
-    { label: "Skills Gained", key: "skills", icon: "" },
-    { label: "Legend Chapter", key: "legendChapter", icon: "" },
-    { label: "Verdict", key: "verdict", icon: "" },
-    { label: "Next Week Focus", key: "nextWeekFocus", icon: "" },
+  const rows: { label: string; key: keyof WeeklyReport; glyph: string }[] = [
+    { label: "Physical", key: "physical", glyph: "▲" },
+    { label: "Mental", key: "mental", glyph: "◆" },
+    { label: "Skills Gained", key: "skills", glyph: "✦" },
+    { label: "Legend Chapter", key: "legendChapter", glyph: "❖" },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="glass-strong system-border rounded-2xl p-5">
-        <h2 className="title-font text-lg text-mana-glow text-glow mb-1">WEEKLY TRANSFORMATION REPORT</h2>
-        <p className="text-sm text-mana-glow/70 mb-4">
-          Week {week}. Every 7 days the System judges your evolution and writes what should have changed.
-        </p>
-        <button
-          onClick={generate}
-          disabled={loading}
-          className="w-full py-3 rounded-xl title-font tracking-wider bg-arise/20 border border-arise/50 text-arise hover:bg-arise/30 disabled:opacity-50 shadow-arise"
-        >
-          {loading ? "COMPILING REPORT…" : "GENERATE WEEK " + week + " REPORT"}
-        </button>
-        {err && <p className="text-xs text-ember/80 mt-2">{err}</p>}
+      {/* ===== Header ===== */}
+      <div className="sys-window sys-corner p-5 relative overflow-hidden">
+        <div className="scanline" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-1">
+            <p className="label">SYSTEM · EVALUATION</p>
+            <span className="term text-[11px] px-2 py-0.5 border" style={{ borderColor: "var(--line)", color: "var(--rank)" }}>
+              WEEK {week}
+            </span>
+          </div>
+          <h2 className="title-font text-xl text-[#eaf1ff] text-glow mb-1">TRANSFORMATION REPORT</h2>
+          <p className="mono text-[13px] text-[#9aa5b8] leading-relaxed mb-4">
+            Every 7 days the System judges your evolution and writes what should have changed.
+          </p>
+          <button onClick={generate} disabled={loading} className="sys-btn w-full py-3 text-sm disabled:opacity-50">
+            {loading ? "COMPILING REPORT…" : `GENERATE WEEK ${week} REPORT`}
+          </button>
+          {err && <p className="mono text-[12px] text-[#ff7b7b] mt-2">{err}</p>}
+        </div>
       </div>
 
       {report && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-          <div className="grid grid-cols-3 gap-2">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+          {/* stat block */}
+          <div className="grid grid-cols-3 gap-2.5">
             <Stat label="COMPLETION" value={`${report.stats.completionRate}%`} />
             <Stat label="XP GAINED" value={`${report.stats.xpGained}`} />
             <Stat label="BEST STREAK" value={`${report.stats.bestStreak}`} />
           </div>
-          {rows.map((r) => (
-            <div key={r.key as string} className="glass rounded-2xl p-4">
-              <p className="title-font text-xs text-mana-glow/70 mb-1">
-                {r.icon} {r.label.toUpperCase()}
-              </p>
-              <p className="text-sm text-mana-glow/85 leading-relaxed">{report[r.key] as string}</p>
-            </div>
-          ))}
+
+          {/* evaluation sections */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {rows.map((r) => (
+              <div key={r.key as string} className="glass p-4 border-l-2 h-full" style={{ borderColor: "color-mix(in srgb, var(--rank) 55%, transparent)" }}>
+                <p className="label mb-1.5 flex items-center gap-1.5">
+                  <span style={{ color: "var(--rank)" }}>{r.glyph}</span> {r.label.toUpperCase()}
+                </p>
+                <p className="mono text-[13.5px] text-[#cdd6e6] leading-relaxed">{report[r.key] as string}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* verdict — the System's judgement */}
+          <div className="sys-window sys-corner p-4 relative overflow-hidden">
+            <div className="scanline" />
+            <p className="relative z-10 label mb-1.5" style={{ color: "var(--rank)" }}>⚖ THE VERDICT</p>
+            <p className="relative z-10 mono text-[14px] text-[#e7eefc] font-medium leading-relaxed">{report.verdict}</p>
+          </div>
+
+          {/* next week directive */}
+          <div className="dossier sys-corner p-4 relative overflow-hidden border-l-2" style={{ borderColor: "#b59b6a" }}>
+            <p className="label !text-[#b59b6a] mb-1.5">➤ NEXT WEEK · DIRECTIVE</p>
+            <p className="mono text-[14px] text-[#ddd6c4] leading-relaxed">{report.nextWeekFocus}</p>
+          </div>
         </motion.div>
       )}
     </div>
@@ -90,9 +112,9 @@ export default function WeeklyReportView() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass rounded-xl p-3 text-center">
-      <p className="title-font text-lg text-mana-glow text-glow">{value}</p>
-      <p className="text-[10px] text-mana-glow/50">{label}</p>
+    <div className="glass p-4 text-center">
+      <p className="title-font text-2xl rank-text text-glow leading-none">{value}</p>
+      <p className="label mt-1.5" style={{ color: "#828c9e" }}>{label}</p>
     </div>
   );
 }

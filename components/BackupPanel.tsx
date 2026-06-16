@@ -61,28 +61,29 @@ export default function BackupPanel() {
   }
 
   return (
-    <div className="glass rounded-2xl p-4">
-      <p className="title-font text-sm tracking-[0.18em] text-[#dcecff] mb-1">BACKUP &amp; RESTORE</p>
-      <p className="text-[11px] text-mana-glow/55 leading-relaxed mb-3">
-        Your progress lives in this browser. Export a backup regularly — then you can never lose your 90 days,
-        even if you switch phones or clear your browser.
+    <div className="glass p-4">
+      <p className="title-font text-sm tracking-[0.16em] text-[#dcecff] mb-1">BACKUP &amp; RESTORE</p>
+      <p className="mono text-[12px] text-[#8993a6] leading-relaxed mb-3">
+        A local export you can never lose your 90 days with — even offline. With Cloud Sync on, this is your manual safety net.
       </p>
       <div className="flex gap-2">
         <button
           onClick={exportSave}
-          className="flex-1 py-2 rounded-xl title-font text-xs tracking-wider bg-mana/20 border border-mana/50 text-mana-glow hover:bg-mana/30"
+          className="flex-1 term text-[11px] py-2 border hover:text-[color:var(--rank)] transition-colors"
+          style={{ borderColor: "var(--line-strong)", background: "color-mix(in srgb, var(--rank) 8%, transparent)" }}
         >
           EXPORT SAVE
         </button>
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex-1 py-2 rounded-xl title-font text-xs tracking-wider border border-mana/30 text-mana-glow/80 hover:bg-mana/10"
+          className="flex-1 term text-[11px] py-2 border hover:text-[color:var(--rank)] transition-colors"
+          style={{ borderColor: "var(--line)" }}
         >
           RESTORE
         </button>
         <input ref={fileRef} type="file" accept="application/json,.json" onChange={onPickFile} className="hidden" />
       </div>
-      {msg && <p className="text-[11px] text-arise/80 mt-2">{msg}</p>}
+      {msg && <p className="mono text-[12px] mt-2" style={{ color: "var(--rank)" }}>{msg}</p>}
     </div>
   );
 }

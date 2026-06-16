@@ -15,7 +15,6 @@ export default function FreezePanel() {
   const used = state.freezeDays || [];
   const day = dayNumber(state);
 
-  // Candidate days: the last 6 days that were missed (not all 7 done) and not the future.
   const today = todayStr();
   const start = state.startDate;
   const candidates: string[] = [];
@@ -28,23 +27,29 @@ export default function FreezePanel() {
   }
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="glass p-4">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between">
-        <p className="title-font text-sm tracking-[0.18em] text-[#dcecff]">STREAK FREEZE</p>
-        <span className="text-xs text-mana-glow/60">
+        <p className="title-font text-sm tracking-[0.16em] text-[#dcecff]">STREAK FREEZE</p>
+        <span className="term text-[11px]" style={{ color: avail > 0 ? "var(--rank)" : "#8993a6" }}>
           {avail} ready{used.length ? ` · ${used.length} used` : ""} {open ? "▲" : "▼"}
         </span>
       </button>
 
+      {!open && (
+        <p className="mono text-[12px] text-[#8993a6] leading-relaxed mt-1">
+          Earn a shield every 7 active days — spend one to bridge a missed day. Adherence beats perfection.
+        </p>
+      )}
+
       {open && (
         <div className="mt-3 space-y-3">
-          <p className="text-[11px] text-mana-glow/55 leading-relaxed">
-            Earn 1 shield every 7 active days ({earned} earned so far). Spend one on a missed day to keep your
-            streaks alive — it bridges the chain but grants no XP. Life happens; don&apos;t let one slip end the war.
+          <p className="mono text-[12px] text-[#8993a6] leading-relaxed">
+            Earn 1 shield every 7 active days ({earned} earned). Spend one on a missed day to keep your streaks
+            alive — it bridges the chain but grants no XP. Don&apos;t let one slip end the war.
           </p>
 
           {candidates.length === 0 ? (
-            <p className="text-[11px] text-mana-glow/40">No recent missed days to protect. Stay hard.</p>
+            <p className="mono text-[12px]" style={{ color: "#6f7888" }}>No recent missed days to protect. Stay hard.</p>
           ) : (
             <div className="space-y-2">
               {candidates.map((d) => {
@@ -52,14 +57,15 @@ export default function FreezePanel() {
                 const done = rec?.completed.length || 0;
                 const dn = day - daysBetween(d, today);
                 return (
-                  <div key={d} className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
-                    <span className="text-xs text-mana-glow/70">
-                      Day {dn} ({d}) — {done}/7 done
+                  <div key={d} className="flex items-center justify-between px-3 py-2 border" style={{ borderColor: "var(--line)", background: "rgba(8,10,18,0.5)" }}>
+                    <span className="mono text-[12px] text-[#aeb6c6]">
+                      Day {dn} · {d} — {done}/7
                     </span>
                     <button
                       disabled={avail <= 0}
                       onClick={() => applyFreeze(d)}
-                      className="text-[11px] title-font px-2 py-1 rounded-md border border-mana/40 text-mana-glow disabled:opacity-30 hover:bg-mana/20"
+                      className="term text-[11px] px-3 py-1 border hover:text-[color:var(--rank)] disabled:opacity-30 transition-colors"
+                      style={{ borderColor: "var(--line-strong)" }}
                     >
                       FREEZE
                     </button>
@@ -71,14 +77,15 @@ export default function FreezePanel() {
 
           {used.length > 0 && (
             <div className="pt-1">
-              <p className="text-[10px] text-mana-glow/40 mb-1">Protected days:</p>
-              <div className="flex flex-wrap gap-1">
+              <p className="label mb-1.5">PROTECTED DAYS</p>
+              <div className="flex flex-wrap gap-1.5">
                 {used.map((d) => (
                   <button
                     key={d}
                     onClick={() => removeFreeze(d)}
                     title="Tap to remove this freeze"
-                    className="text-[10px] px-2 py-0.5 rounded-full border border-arise/30 text-arise/80 hover:line-through"
+                    className="term text-[10px] px-2 py-0.5 border hover:line-through transition-all"
+                    style={{ borderColor: "var(--line-strong)", color: "var(--rank)" }}
                   >
                     {d} ✕
                   </button>

@@ -68,26 +68,30 @@ export default function ReminderToggle() {
   }
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="glass p-4">
       <div className="flex items-center justify-between">
-        <p className="title-font text-sm tracking-[0.18em] text-[#dcecff]">DAILY REMINDER</p>
+        <p className="title-font text-sm tracking-[0.16em] text-[#dcecff]">DAILY REMINDER</p>
         <button
           onClick={toggle}
           disabled={perm === "unsupported"}
-          className={`text-[11px] title-font px-3 py-1 rounded-full border ${
-            enabled ? "border-arise/50 text-arise" : "border-mana/30 text-mana-glow/60"
-          } disabled:opacity-40`}
+          className="term text-[11px] px-3 py-1 border transition-colors disabled:opacity-40"
+          style={{
+            borderColor: enabled ? "var(--rank)" : "var(--line)",
+            color: enabled ? "var(--rank)" : "#8993a6",
+            background: enabled ? "color-mix(in srgb, var(--rank) 12%, transparent)" : "transparent",
+          }}
         >
-          {perm === "unsupported" ? "UNSUPPORTED" : enabled ? "ON" : "OFF"}
+          {perm === "unsupported" ? "N/A" : enabled ? "ON" : "OFF"}
         </button>
       </div>
       {enabled && (
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-[11px] text-mana-glow/55">Nudge me at</span>
+        <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+          <span className="mono text-[12px] text-[#8993a6]">Nudge me at</span>
           <select
             value={hour}
             onChange={(e) => update({ settings: { ...state.settings, reminderHour: Number(e.target.value) } })}
-            className="bg-black/30 border border-mana/20 rounded-md text-xs text-mana-glow px-2 py-1 focus:outline-none"
+            className="term text-[12px] text-[#e7eefc] px-2 py-1 border bg-[rgba(8,10,18,0.7)] focus:outline-none focus:border-[color:var(--rank)]"
+            style={{ borderColor: "var(--line)" }}
           >
             {Array.from({ length: 24 }, (_, h) => (
               <option key={h} value={h}>
@@ -95,12 +99,11 @@ export default function ReminderToggle() {
               </option>
             ))}
           </select>
-          <span className="text-[11px] text-mana-glow/40">if quests aren&apos;t done</span>
+          <span className="mono text-[12px] text-[#8993a6]">if quests aren&apos;t done</span>
         </div>
       )}
-      <p className="text-[10px] text-mana-glow/40 mt-2 leading-relaxed">
-        Fires while the app is open. For a guaranteed daily wake-up, also set a phone alarm — discipline doesn&apos;t
-        rely on luck.
+      <p className="mono text-[12px] text-[#8993a6] mt-2 leading-relaxed">
+        Fires while the app is open. For a guaranteed wake-up, also set a phone alarm — discipline doesn&apos;t rely on luck.
       </p>
     </div>
   );
