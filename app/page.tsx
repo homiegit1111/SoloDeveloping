@@ -15,10 +15,7 @@ import LibraryView from "@/components/LibraryView";
 import LessonCard from "@/components/LessonCard";
 import Onboarding from "@/components/Onboarding";
 import JournalCard from "@/components/JournalCard";
-import FreezePanel from "@/components/FreezePanel";
-import BackupPanel from "@/components/BackupPanel";
-import CloudSyncPanel from "@/components/CloudSyncPanel";
-import ReminderToggle from "@/components/ReminderToggle";
+import HeaderTools from "@/components/HeaderTools";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
 import RankUpCeremony from "@/components/RankUpCeremony";
 import { isFrozen } from "@/lib/store";
@@ -186,12 +183,6 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-        <FreezePanel />
-        <ReminderToggle />
-        <BackupPanel />
-        <CloudSyncPanel />
-      </div>
       <div className="flex justify-center lg:justify-end gap-5 pt-1">
         {soundBtn}
         {resetBtn}
@@ -244,9 +235,12 @@ export default function Home() {
               DAY <span className="num">{day}</span> / 90
             </p>
           </div>
-          <div className="text-right">
-            <p className="label">{state.name}</p>
-            <p className="num text-[13px]" style={{ color: rank.color }}>{rank.name}</p>
+          <div className="flex items-center gap-3">
+            <HeaderTools compact />
+            <div className="text-right">
+              <p className="label">{state.name}</p>
+              <p className="num text-[13px]" style={{ color: rank.color }}>{rank.name}</p>
+            </div>
           </div>
         </header>
 
@@ -255,14 +249,17 @@ export default function Home() {
             <h1 className="title-font text-xl text-[#eef4ff]">{TABS.find((t) => t.id === tab)?.label}</h1>
             <span className="label">{TABS.find((t) => t.id === tab)?.sub}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="label">RANK</span>
-            <span
-              className="num text-sm px-3 py-1 border"
-              style={{ color: rank.color, borderColor: `${rank.color}55`, boxShadow: `0 0 18px -8px ${rank.glow}` }}
-            >
-              {rank.name}
-            </span>
+          <div className="flex items-center gap-4">
+            <HeaderTools />
+            <div className="flex items-center gap-2">
+              <span className="label">RANK</span>
+              <span
+                className="num text-sm px-3 py-1 border"
+                style={{ color: rank.color, borderColor: `${rank.color}55`, boxShadow: `0 0 18px -8px ${rank.glow}` }}
+              >
+                {rank.name}
+              </span>
+            </div>
           </div>
         </header>
 

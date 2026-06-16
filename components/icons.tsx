@@ -133,6 +133,38 @@ export const IconLock = (p: P) => (
   </S>
 );
 
+/* ---------- System header tools (Solo-Leveling themed) ---------- */
+// Streak Freeze — an angular monarch crest / frozen sigil shield.
+export const IconShield = (p: P) => (
+  <S {...p}>
+    <path d="M12 2.5 4.5 5.5v6c0 5 3.2 8 7.5 10 4.3-2 7.5-5 7.5-10v-6L12 2.5Z" />
+    <path d="M12 7.2 9.3 12h5.4L12 16.8" />
+  </S>
+);
+// Daily Reminder — sharp summon bell with a pulse.
+export const IconBell = (p: P) => (
+  <S {...p}>
+    <path d="M12 3a6 6 0 0 0-6 6c0 5-1.5 6.5-2.5 7.5h17C19.5 15.5 18 14 18 9a6 6 0 0 0-6-6Z" />
+    <path d="M10.5 20a1.7 1.7 0 0 0 3 0" />
+    <path d="M12 3V1.5" />
+  </S>
+);
+// Backup & Restore — gate / vault arch with descending data shard.
+export const IconVault = (p: P) => (
+  <S {...p}>
+    <path d="M4 20V8.5L12 4l8 4.5V20" />
+    <path d="M4 20h16" />
+    <path d="M12 9v6m0 0-2.5-2.5M12 15l2.5-2.5" />
+  </S>
+);
+// Cloud Sync — manhwa portal/gate cloud with orbit ring.
+export const IconCloud = (p: P) => (
+  <S {...p}>
+    <path d="M7 18a4 4 0 0 1-.5-7.97A5 5 0 0 1 16 9.5a3.5 3.5 0 0 1 .5 6.96" />
+    <path d="M12 13.5v5m0 0 2-2m-2 2-2-2" />
+  </S>
+);
+
 /* ---------- Lookup maps ---------- */
 export const HABIT_ICON: Record<string, (p: P) => JSX.Element> = {
   gym: IconGym,

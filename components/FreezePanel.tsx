@@ -6,9 +6,9 @@ import { todayStr, addDays, dayNumber, daysBetween, freezesAvailable, freezesEar
 
 // Streak Freeze: earn 1 per 7 active days. Apply it to a past missed day to
 // bridge the chain (keeps streaks alive, awards NO XP). Adherence > perfection.
-export default function FreezePanel() {
+export default function FreezePanel({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const { state, applyFreeze, removeFreeze } = useApp();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   const avail = freezesAvailable(state);
   const earned = freezesEarned(state);
