@@ -30,7 +30,7 @@ export default function FreezePanel() {
   return (
     <div className="glass rounded-2xl p-4">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between">
-        <p className="title-font text-sm text-mana-glow/80">🛡️ STREAK FREEZE</p>
+        <p className="title-font text-sm tracking-[0.18em] text-[#dcecff]">STREAK FREEZE</p>
         <span className="text-xs text-mana-glow/60">
           {avail} ready{used.length ? ` · ${used.length} used` : ""} {open ? "▲" : "▼"}
         </span>
@@ -44,7 +44,7 @@ export default function FreezePanel() {
           </p>
 
           {candidates.length === 0 ? (
-            <p className="text-[11px] text-mana-glow/40">No recent missed days to protect. Stay hard. 🔥</p>
+            <p className="text-[11px] text-mana-glow/40">No recent missed days to protect. Stay hard.</p>
           ) : (
             <div className="space-y-2">
               {candidates.map((d) => {
@@ -80,7 +80,7 @@ export default function FreezePanel() {
                     title="Tap to remove this freeze"
                     className="text-[10px] px-2 py-0.5 rounded-full border border-arise/30 text-arise/80 hover:line-through"
                   >
-                    🛡️ {d} ✕
+                    {d} ✕
                   </button>
                 ))}
               </div>

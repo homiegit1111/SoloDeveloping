@@ -27,7 +27,7 @@ export default function BackupPanel() {
     a.download = `solo-developing-backup-${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setMsg("Backup downloaded. Keep it safe. 💾");
+    setMsg("Backup downloaded. Keep it safe.");
     setTimeout(() => setMsg(""), 2500);
   }
 
@@ -49,7 +49,7 @@ export default function BackupPanel() {
         )
           return;
         importState(data);
-        setMsg("Save restored. Welcome back, Hunter. ⚔️");
+        setMsg("Save restored. Welcome back, Hunter.");
       } catch {
         setMsg("Could not read that file — is it a valid backup?");
       } finally {
@@ -62,7 +62,7 @@ export default function BackupPanel() {
 
   return (
     <div className="glass rounded-2xl p-4">
-      <p className="title-font text-sm text-mana-glow/80 mb-1">💾 BACKUP &amp; RESTORE</p>
+      <p className="title-font text-sm tracking-[0.18em] text-[#dcecff] mb-1">BACKUP &amp; RESTORE</p>
       <p className="text-[11px] text-mana-glow/55 leading-relaxed mb-3">
         Your progress lives in this browser. Export a backup regularly — then you can never lose your 90 days,
         even if you switch phones or clear your browser.
@@ -72,13 +72,13 @@ export default function BackupPanel() {
           onClick={exportSave}
           className="flex-1 py-2 rounded-xl title-font text-xs tracking-wider bg-mana/20 border border-mana/50 text-mana-glow hover:bg-mana/30"
         >
-          ⬇ EXPORT SAVE
+          EXPORT SAVE
         </button>
         <button
           onClick={() => fileRef.current?.click()}
           className="flex-1 py-2 rounded-xl title-font text-xs tracking-wider border border-mana/30 text-mana-glow/80 hover:bg-mana/10"
         >
-          ⬆ RESTORE
+          RESTORE
         </button>
         <input ref={fileRef} type="file" accept="application/json,.json" onChange={onPickFile} className="hidden" />
       </div>

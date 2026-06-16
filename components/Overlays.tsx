@@ -1,9 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import SystemWindow, { useTypewriter } from "./SystemWindow";
+import { punishment as sndPunish } from "@/lib/sound";
 
-// REWARD overlay — fires on milestones (perfect day, rank up).
+// REWARD — "ALL QUESTS CLEARED" manhwa panel with particle explosion.
 export function RewardOverlay({
   open,
   title,
@@ -19,7 +21,7 @@ export function RewardOverlay({
 }) {
   useEffect(() => {
     if (open) {
-      const t = setTimeout(onClose, 6000);
+      const t = setTimeout(onClose, 6500);
       return () => clearTimeout(t);
     }
   }, [open, onClose]);
@@ -33,37 +35,44 @@ export function RewardOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          style={{ background: "radial-gradient(circle, rgba(255,206,84,0.18), rgba(5,6,15,0.96))" }}
+          style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--rank) 16%, transparent), rgba(2,2,5,0.97))" }}
         >
-          {/* rays */}
+          {/* particle explosion rays */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {Array.from({ length: 18 }).map((_, i) => (
+            {Array.from({ length: 22 }).map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute left-1/2 top-1/2 origin-top"
-                style={{ width: 2, height: "60vh", background: "linear-gradient(#ffce54, transparent)", transform: `rotate(${i * 20}deg)` }}
-                animate={{ opacity: [0.1, 0.5, 0.1] }}
-                transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.1 }}
+                style={{ width: 2, height: "62vh", background: "linear-gradient(var(--rank), transparent)", transform: `rotate(${i * (360 / 22)}deg)` }}
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: [0, 0.6, 0.1], scaleY: [0, 1, 1] }}
+                transition={{ duration: 1.4, delay: i * 0.02 }}
+              />
+            ))}
+            {Array.from({ length: 30 }).map((_, i) => (
+              <motion.span
+                key={`p${i}`}
+                className="absolute left-1/2 top-1/2 w-1.5 h-1.5"
+                style={{ background: "var(--rank)", boxShadow: "0 0 8px var(--rank-glow)" }}
+                initial={{ x: 0, y: 0, opacity: 1 }}
+                animate={{ x: Math.cos((i / 30) * 6.28) * 240, y: Math.sin((i / 30) * 6.28) * 240, opacity: 0 }}
+                transition={{ duration: 1.3, ease: "easeOut" }}
               />
             ))}
           </div>
 
           <motion.div
-            initial={{ scale: 0.6, y: 30 }}
+            initial={{ scale: 0.7, y: 20 }}
             animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.6, opacity: 0 }}
-            className="sys-window sys-corner p-7 text-center max-w-sm relative z-10"
-            style={{ boxShadow: "0 0 40px rgba(255,206,84,0.5)", borderColor: "rgba(255,206,84,0.6)" }}
+            exit={{ scale: 0.7, opacity: 0 }}
+            className="relative z-10 w-full max-w-md"
           >
-            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gold/30">
-              <span className="grid place-items-center w-9 h-9 rounded-full border-2 border-gold text-gold text-lg" style={{ boxShadow: "0 0 10px rgba(255,206,84,0.6)" }}>!</span>
-              <span className="title-font tracking-[0.25em] text-gold text-glow text-lg">NOTIFICATION</span>
-            </div>
-            <p className="title-font text-gold tracking-[0.3em] text-xs mb-2 text-glow">LEVEL UP</p>
-            <h2 className="title-font text-2xl font-black text-gold text-glow mb-1">{title}</h2>
-            <p className="text-mana-glow/85 mb-4">{subtitle}</p>
-            {quote && <p className="text-sm italic text-gold/90 border-t border-gold/20 pt-3">"{quote}"</p>}
-            <p className="text-[10px] text-mana-glow/40 mt-4">tap to dismiss</p>
+            <SystemWindow label="SYSTEM · NOTIFICATION" onDismiss={onClose} dismissLabel="ARISE">
+              <p className="title-font tracking-[0.3em] text-xs mb-2 text-glow" style={{ color: "var(--rank)" }}>QUEST LOG CLEARED</p>
+              <h2 className="title-font text-3xl text-glow mb-2" style={{ color: "var(--rank)" }}>{title}</h2>
+              <p className="mono text-sm text-[#c3cde0] mb-3">{subtitle}</p>
+              {quote && <p className="mono text-sm italic text-[#9aa6bd] border-t pt-3" style={{ borderColor: "var(--line)" }}>&ldquo;{quote}&rdquo;</p>}
+            </SystemWindow>
           </motion.div>
         </motion.div>
       )}
@@ -71,7 +80,7 @@ export function RewardOverlay({
   );
 }
 
-// PUNISHMENT overlay — fires when the user missed a day.
+// PUNISHMENT — "THE SYSTEM IS DISAPPOINTED". Red bleed, legend voice, 24h timer.
 export function PunishmentOverlay({
   open,
   missedCount,
@@ -85,46 +94,78 @@ export function PunishmentOverlay({
   legend: string;
   onClose: () => void;
 }) {
+  const RED = "#ef4444";
+  const typed = useTypewriter(quote, 18, open);
+  const [hrs, setHrs] = useState("24:00:00");
+
+  useEffect(() => {
+    if (!open) return;
+    sndPunish();
+  }, [open]);
+
+  // 24h recovery countdown until next local midnight
+  useEffect(() => {
+    if (!open) return;
+    const tick = () => {
+      const now = new Date();
+      const end = new Date(now);
+      end.setHours(24, 0, 0, 0);
+      let s = Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000));
+      const h = String(Math.floor(s / 3600)).padStart(2, "0");
+      s %= 3600;
+      const m = String(Math.floor(s / 60)).padStart(2, "0");
+      const sec = String(s % 60).padStart(2, "0");
+      setHrs(`${h}:${m}:${sec}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ ["--rank" as any]: RED, ["--rank-glow" as any]: "rgba(239,68,68,0.6)" } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{ background: "radial-gradient(circle, rgba(255,77,94,0.15), rgba(2,2,6,0.97))" }}
         >
+          <div className="absolute inset-0 bg-[rgba(2,1,3,0.92)]" />
+          {/* red bleeds from edges inward */}
           <motion.div
             className="pointer-events-none absolute inset-0"
-            animate={{ opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 0.4, repeat: Infinity }}
-            style={{ boxShadow: "inset 0 0 120px rgba(255,77,94,0.5)" }}
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 1.6, repeat: Infinity }}
+            style={{ boxShadow: "inset 0 0 160px rgba(239,68,68,0.5), inset 0 0 0 2px rgba(239,68,68,0.3)" }}
           />
+
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="sys-window sys-corner p-7 text-center max-w-sm relative z-10 animate-shake"
-            style={{ boxShadow: "0 0 40px rgba(255,77,94,0.45)", borderColor: "rgba(255,77,94,0.6)" }}
+            className="relative z-10 w-full max-w-md animate-shake"
           >
-            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-ember/30">
-              <span className="grid place-items-center w-9 h-9 rounded-full border-2 border-ember text-ember text-lg" style={{ boxShadow: "0 0 10px rgba(255,77,94,0.6)" }}>!</span>
-              <span className="title-font tracking-[0.25em] text-ember text-glow text-lg">NOTIFICATION</span>
-            </div>
-            <p className="title-font text-ember tracking-[0.3em] text-xs mb-2 text-glow">⚠ PENALTY ZONE ⚠</p>
-            <h2 className="title-font text-2xl font-black text-ember text-glow mb-1">YOU FELL BEHIND</h2>
-            <p className="text-mana-glow/85 mb-4">
-              {missedCount} quest{missedCount === 1 ? "" : "s"} left undone yesterday. The System logged your absence.
-              Weakness is a choice you can unmake today.
-            </p>
-            <p className="text-sm italic text-ember/90 border-t border-ember/20 pt-3">"{quote}"</p>
-            <p className="text-xs text-mana-glow/50 mt-1">— {legend}</p>
-            <button
-              onClick={onClose}
-              className="mt-5 px-5 py-2 rounded-lg title-font text-sm bg-ember/20 border border-ember/50 text-ember hover:bg-ember/30"
-            >
-              I ACCEPT — I RISE TODAY
-            </button>
+            <SystemWindow label="SYSTEM · PENALTY ZONE" autoSound={false}>
+              <p className="title-font tracking-[0.28em] text-xs mb-2 text-glow-crimson" style={{ color: RED }}>⚠ PENALTY APPLIED ⚠</p>
+              <h2 className="title-font text-2xl mb-2 text-glow-crimson" style={{ color: RED }}>THE SYSTEM IS DISAPPOINTED</h2>
+              <p className="mono text-sm text-[#c3cde0] mb-3">
+                {missedCount} quest{missedCount === 1 ? "" : "s"} left undone. The Hunter weakens until today is cleared.
+              </p>
+              <p className="mono text-sm italic text-[#e2b3b3] border-t pt-3 min-h-[4em] caret" style={{ borderColor: "rgba(239,68,68,0.25)" }}>
+                {typed}
+              </p>
+              <p className="mono text-[11px] text-[#9aa6bd] mt-1">— {legend}</p>
+
+              <div className="mt-4 flex items-center justify-between border-t pt-3" style={{ borderColor: "rgba(239,68,68,0.2)" }}>
+                <span className="label !tracking-[0.2em]" style={{ color: RED }}>RECOVERY WINDOW</span>
+                <span className="num text-lg" style={{ color: RED, textShadow: "0 0 12px rgba(239,68,68,0.6)" }}>{hrs}</span>
+              </div>
+
+              <button onClick={onClose} className="sys-btn sys-btn-danger w-full py-2.5 text-sm mt-4">
+                [ I ACCEPT — I RISE TODAY ]
+              </button>
+            </SystemWindow>
           </motion.div>
         </motion.div>
       )}

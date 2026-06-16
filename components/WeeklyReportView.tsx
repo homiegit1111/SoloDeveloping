@@ -39,12 +39,12 @@ export default function WeeklyReportView() {
   }
 
   const rows: { label: string; key: keyof WeeklyReport; icon: string }[] = [
-    { label: "Physical", key: "physical", icon: "💪" },
-    { label: "Mental", key: "mental", icon: "🧠" },
-    { label: "Skills Gained", key: "skills", icon: "📈" },
-    { label: "Legend Chapter", key: "legendChapter", icon: "📜" },
-    { label: "Verdict", key: "verdict", icon: "⚖️" },
-    { label: "Next Week Focus", key: "nextWeekFocus", icon: "🎯" },
+    { label: "Physical", key: "physical", icon: "" },
+    { label: "Mental", key: "mental", icon: "" },
+    { label: "Skills Gained", key: "skills", icon: "" },
+    { label: "Legend Chapter", key: "legendChapter", icon: "" },
+    { label: "Verdict", key: "verdict", icon: "" },
+    { label: "Next Week Focus", key: "nextWeekFocus", icon: "" },
   ];
 
   return (

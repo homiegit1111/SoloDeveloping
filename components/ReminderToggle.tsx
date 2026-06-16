@@ -34,7 +34,7 @@ export default function ReminderToggle() {
       if (localStorage.getItem(flag)) return;
       localStorage.setItem(flag, "1");
       try {
-        new Notification("⚔️ The System is waiting, Hunter", {
+        new Notification("The System is waiting, Hunter", {
           body: `${doneToday}/7 quests cleared today. The gate closes at midnight. Move.`,
         });
       } catch {
@@ -57,7 +57,7 @@ export default function ReminderToggle() {
       if (p === "granted") {
         update({ settings: { ...state.settings, remindersEnabled: true } });
         try {
-          new Notification("🔔 Reminders armed", { body: "The System will nudge you each evening. Stay hard." });
+          new Notification("Reminders armed", { body: "The System will nudge you each evening. Stay hard." });
         } catch {
           /* ignore */
         }
@@ -70,7 +70,7 @@ export default function ReminderToggle() {
   return (
     <div className="glass rounded-2xl p-4">
       <div className="flex items-center justify-between">
-        <p className="title-font text-sm text-mana-glow/80">🔔 DAILY REMINDER</p>
+        <p className="title-font text-sm tracking-[0.18em] text-[#dcecff]">DAILY REMINDER</p>
         <button
           onClick={toggle}
           disabled={perm === "unsupported"}

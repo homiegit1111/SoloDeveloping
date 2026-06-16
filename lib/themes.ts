@@ -24,7 +24,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "body",
     label: "Body & Iron",
-    icon: "🏋️",
+    icon: "",
     legend: "arnold",
     query:
       "gym training muscle strength hypertrophy volume reps sets progression rest nutrition protein recovery deload",
@@ -33,7 +33,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "discipline",
     label: "The Warrior's Discipline",
-    icon: "🗡️",
+    icon: "",
     legend: "marcus",
     query:
       "discipline urge control willpower desire temptation focus stoic warrior aggression restraint nofap self-mastery",
@@ -42,7 +42,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "identity",
     label: "Identity & Purpose",
-    icon: "👑",
+    icon: "",
     legend: "moore",
     query:
       "king warrior magician lover archetype masculine identity purpose maturity manhood boyhood initiation blessing order",
@@ -51,7 +51,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "toughness",
     label: "Mental Toughness",
-    icon: "🔥",
+    icon: "",
     legend: "goggins",
     query:
       "pain suffering hard mental toughness callus mind 40 percent accountability mirror cookie jar take souls stay hard",
@@ -60,7 +60,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "social",
     label: "Presence & Boundaries",
-    icon: "🗣️",
+    icon: "",
     legend: "glover",
     query:
       "social confidence boundaries assertive needs approval nice guy covert contract relationship communication integrity",
@@ -69,7 +69,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "wisdom",
     label: "Wisdom & Study",
-    icon: "📜",
+    icon: "",
     legend: "aristotle",
     query:
       "virtue character wisdom study habit excellence golden mean knowledge learning maths reason self-mastery courage",
@@ -78,7 +78,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "habits",
     label: "Habits & Systems",
-    icon: "⚙️",
+    icon: "",
     legend: "clear",
     query:
       "habit system identity small consistent compound streak routine vote trajectory never miss twice atomic",
@@ -87,7 +87,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "presence",
     label: "Skin & Presence",
-    icon: "✨",
+    icon: "",
     legend: "glover",
     query:
       "skincare skin glow grooming hygiene cleanse moisturise SPF appearance presence grooming barber posture confidence",
@@ -96,7 +96,7 @@ const THEMES: Omit<DayTheme, "legendName">[] = [
   {
     key: "ambition",
     label: "Ambition & The Long War",
-    icon: "⚔️",
+    icon: "",
     legend: "alexander",
     query:
       "ambition conquer empire fear lead vision legacy battlefield courage destiny relentless march purpose",

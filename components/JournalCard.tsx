@@ -25,7 +25,7 @@ export default function JournalCard() {
   return (
     <div className="glass rounded-2xl p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="title-font text-sm text-mana-glow/80">🌙 EVENING REFLECTION</p>
+        <p className="title-font text-sm tracking-[0.18em] text-[#dcecff]">EVENING REFLECTION</p>
         {saved && <span className="text-[10px] text-arise/80 title-font">SAVED</span>}
       </div>
       <textarea

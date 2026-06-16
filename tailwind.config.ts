@@ -24,6 +24,7 @@ const config: Config = {
         },
         arise: "#8a5cf6", // purple shadow-monarch
         ember: "#ff4d5e", // punishment red
+        crimson: "#ff2b46", // danger accent
         gold: "#ffce54", // reward gold
         jade: "#39d98a", // success green
       },

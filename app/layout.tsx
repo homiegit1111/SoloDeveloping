@@ -3,14 +3,14 @@ import "./globals.css";
 import { AppProvider } from "@/lib/context";
 
 export const metadata: Metadata = {
-  title: "SoloDeveloping — Rise, Hunter",
+  title: "SoloDeveloping — Arise, Hunter",
   description:
-    "A Solo Leveling inspired personal transformation system. Track habits, ascend ranks, and let the legends coach your 90-day comeback.",
+    "Ravi's System. A Solo Leveling transformation engine — track quests, ascend ranks E to SS, and let the legends forge your comeback.",
   manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#05060f",
+  themeColor: "#030305",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -22,8 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Syne — commanding manhwa display. Space Mono — terminal/System body. */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
       </head>

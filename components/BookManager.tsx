@@ -61,16 +61,16 @@ export default function BookManager() {
       const res = await fetch("/api/books", { method: "POST", body: fd });
       const data = await res.json();
       if (data.error) {
-        setMsg(`⚠ ${data.error}`);
+        setMsg(` ${data.error}`);
       } else {
         const meta: BookMeta = data.meta;
         const chunks: BookChunk[] = data.chunks;
         const others = state.books.filter((b) => b.slug !== meta.slug);
         setBooks([...others, meta], { [meta.slug]: chunks });
-        setMsg(`✓ Loaded "${meta.title}" — ${meta.chunkCount} chunks indexed (${meta.categories.join(", ")}).`);
+        setMsg(` Loaded "${meta.title}" — ${meta.chunkCount} chunks indexed (${meta.categories.join(", ")}).`);
       }
     } catch (e: any) {
-      setMsg(`⚠ ${e?.message || "Upload failed"}`);
+      setMsg(` ${e?.message || "Upload failed"}`);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -115,7 +115,7 @@ export default function BookManager() {
             animate={{ opacity: 1, y: 0 }}
             className={`glass rounded-xl p-3 flex items-center gap-3 ${b.active ? "" : "opacity-50"}`}
           >
-            <span className="text-2xl">📕</span>
+            <span className="text-2xl"></span>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-mana-glow font-semibold truncate">{b.title}</p>
               <p className="text-xs text-mana-glow/55 truncate">

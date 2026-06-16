@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { rankForXP } from "@/lib/ranks";
 import { dayNumber, yesterdaySummary, overallCondition } from "@/lib/store";
-import { LEGEND_LINES, LEGENDS, legendForFocus, pick } from "@/lib/legends";
+import { LEGEND_LINES, LEGENDS, pick } from "@/lib/legends";
 import RankPanel from "@/components/RankPanel";
 import StatBars from "@/components/StatBars";
 import HabitTracker from "@/components/HabitTracker";
@@ -19,25 +19,29 @@ import FreezePanel from "@/components/FreezePanel";
 import BackupPanel from "@/components/BackupPanel";
 import ReminderToggle from "@/components/ReminderToggle";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
+import RankUpCeremony from "@/components/RankUpCeremony";
 import { isFrozen } from "@/lib/store";
+import { NAV_ICON } from "@/components/icons";
+import { setSoundEnabled } from "@/lib/sound";
 
 type Tab = "home" | "plan" | "curriculum" | "report" | "books";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "home", label: "HQ", icon: "🏰" },
-  { id: "plan", label: "Plan", icon: "⚡" },
-  { id: "curriculum", label: "Train", icon: "📚" },
-  { id: "report", label: "Report", icon: "📊" },
-  { id: "books", label: "Books", icon: "📕" },
+const TABS: { id: Tab; label: string; sub: string }[] = [
+  { id: "home", label: "HQ", sub: "Status" },
+  { id: "plan", label: "Plan", sub: "Today" },
+  { id: "curriculum", label: "Train", sub: "Curriculum" },
+  { id: "report", label: "Report", sub: "Weekly" },
+  { id: "books", label: "Books", sub: "Library" },
 ];
 
 export default function Home() {
-  const { state, ready, reset } = useApp();
+  const { state, ready, reset, update } = useApp();
   const [tab, setTab] = useState<Tab>("home");
   const [started, setStarted] = useState(false);
 
   const [reward, setReward] = useState<{ title: string; subtitle: string; quote?: string } | null>(null);
   const [punish, setPunish] = useState<{ count: number; quote: string; legend: string } | null>(null);
+  const [ceremony, setCeremony] = useState(false);
   const punishShown = useRef(false);
   const lastRank = useRef<number>(0);
 
@@ -45,11 +49,32 @@ export default function Home() {
   const day = useMemo(() => (ready ? dayNumber(state) : 1), [state, ready]);
   const condition = useMemo(() => (ready ? overallCondition(state) : 0), [state, ready]);
 
-  // Determine if onboarding is needed (first ever run)
+  // penalty zone — yesterday missed and today not yet cleared
+  const penaltyActive = useMemo(() => {
+    if (!ready) return false;
+    const y = yesterdaySummary(state);
+    const hasHistory = Object.keys(state.history).length > 0;
+    const todayDone = state.history[new Date().toISOString().slice(0, 10)]?.completed.length || 0;
+    return hasHistory && y.completed < y.total && !isFrozen(state, y.date) && todayDone < 7;
+  }, [state, ready]);
+
   const needsOnboarding =
     ready && !started && typeof window !== "undefined" && !localStorage.getItem("solo-onboarded");
 
-  // Rank-up detection
+  // ---- rank color bleeds into the whole UI ----
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    root.style.setProperty("--rank", rank.color);
+    root.style.setProperty("--rank-glow", rank.glow);
+    document.body.setAttribute("data-rank", rank.name);
+  }, [rank.color, rank.glow, rank.name]);
+
+  // ---- sound mute setting ----
+  useEffect(() => {
+    setSoundEnabled(state.settings?.soundEnabled !== false);
+  }, [state.settings?.soundEnabled]);
+
   useEffect(() => {
     if (!ready) return;
     if (lastRank.current === 0) {
@@ -57,21 +82,15 @@ export default function Home() {
       return;
     }
     if (rank.index > lastRank.current) {
-      setReward({
-        title: `${rank.name} REACHED`,
-        subtitle: `"${rank.title}" — you have ascended.`,
-        quote: pick(LEGEND_LINES.alexander, rank.index),
-      });
+      setCeremony(true);
       lastRank.current = rank.index;
     }
   }, [rank.index, ready]);
 
-  // Punishment on missed yesterday (once per session)
   useEffect(() => {
     if (!ready || punishShown.current) return;
     const y = yesterdaySummary(state);
     const hasHistory = Object.keys(state.history).length > 0;
-    // A Streak Freeze on yesterday shields you from the punishment.
     if (hasHistory && y.completed < y.total && !isFrozen(state, y.date)) {
       const lk = "goggins" as const;
       setPunish({
@@ -85,13 +104,14 @@ export default function Home() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-system min-h-screen flex items-center justify-center">
         <motion.p
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.4, repeat: Infinity }}
-          className="title-font text-mana-glow tracking-widest"
+          className="label !text-base !tracking-[0.4em]"
+          style={{ color: "var(--rank)" }}
         >
-          THE SYSTEM IS WAKING…
+          THE SYSTEM IS WAKING
         </motion.p>
       </div>
     );
@@ -108,82 +128,174 @@ export default function Home() {
     );
   }
 
+  const soundOn = state.settings?.soundEnabled !== false;
+  const soundBtn = (
+    <button
+      onClick={() => update({ settings: { ...state.settings, soundEnabled: !soundOn } })}
+      className="label hover:text-[color:var(--rank)] transition-colors"
+    >
+      sound: {soundOn ? "on" : "off"}
+    </button>
+  );
+  const resetBtn = (
+    <button
+      onClick={() => {
+        if (confirm("Reset all progress? This wipes your save. (Export a backup first!)")) {
+          localStorage.removeItem("solo-onboarded");
+          reset();
+        }
+      }}
+      className="label hover:text-[#ff7b7b] transition-colors"
+    >
+      reset progress
+    </button>
+  );
+
+  const homeContent = (
+    <>
+      <div className="grid gap-4 lg:grid-cols-12 lg:gap-5">
+        <div className="lg:col-span-5 space-y-4">
+          <RankPanel rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
+          <div className="hidden lg:block">
+            <JournalCard />
+          </div>
+        </div>
+        <div className="lg:col-span-7 space-y-4">
+          <HabitTracker
+            onAllComplete={() =>
+              setReward({
+                title: "ALL QUESTS CLEARED",
+                subtitle: "Every quest cleared. +50 XP bonus. This is who you are becoming.",
+                quote: pick(LEGEND_LINES.clear, day),
+              })
+            }
+          />
+          <StatBars state={state} />
+        </div>
+      </div>
+
+      <div className="lg:hidden">
+        <JournalCard />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <FreezePanel />
+        <ReminderToggle />
+        <BackupPanel />
+      </div>
+      <div className="flex justify-center lg:justify-end gap-5 pt-1">
+        {soundBtn}
+        {resetBtn}
+      </div>
+    </>
+  );
+
   return (
-    <div className="min-h-screen pb-24 max-w-md mx-auto px-4 pt-5">
-      <header className="flex items-center justify-between mb-4">
-        <div>
-          <p className="title-font text-xs text-mana-glow/60 tracking-widest">SOLO·DEVELOPING</p>
-          <p className="title-font text-lg text-mana-glow text-glow">Day {day} / 90</p>
+    <div className={`bg-system min-h-screen ${penaltyActive ? "penalty-zone" : ""}`}>
+      {/* ===== Desktop nav rail ===== */}
+      <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 w-[244px] border-r bg-[rgba(4,5,11,0.7)] backdrop-blur-md z-40" style={{ borderColor: "var(--line)" }}>
+        <div className="px-5 pt-6 pb-5 border-b" style={{ borderColor: "var(--line)" }}>
+          <p className="label">SOLO·DEVELOPING</p>
+          <p className="title-font text-2xl text-glow mt-1" style={{ color: "var(--rank)" }}>
+            DAY <span className="num">{day}</span>
+            <span className="opacity-40 text-lg"> / 90</span>
+          </p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-mana-glow/60">Hunter</p>
-          <p className="title-font text-mana-glow">{state.name}</p>
-        </div>
-      </header>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={tab}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}
-        >
-          {tab === "home" && (
-            <div className="space-y-4">
-              <RankPanel rank={rank} totalXP={state.totalXP} condition={condition} />
-              <HabitTracker
-                onAllComplete={() =>
-                  setReward({
-                    title: "PERFECT DAY",
-                    subtitle: "All 7 quests cleared. +50 XP bonus. This is who you are becoming.",
-                    quote: pick(LEGEND_LINES.clear, day),
-                  })
-                }
-              />
-              <StatBars state={state} />
-              <JournalCard />
-              <FreezePanel />
-              <ReminderToggle />
-              <BackupPanel />
-              <button
-                onClick={() => {
-                  if (confirm("Reset all progress? This wipes your save. (Export a backup first!)")) {
-                    localStorage.removeItem("solo-onboarded");
-                    reset();
-                  }
-                }}
-                className="w-full text-xs text-mana-glow/40 py-2"
-              >
-                reset progress
-              </button>
-            </div>
-          )}
-          {tab === "plan" && <DailyPlanView />}
-          {tab === "curriculum" && <CurriculumView />}
-          {tab === "report" && <WeeklyReportView />}
-          {tab === "books" && <BookManager />}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40">
-        <div className="max-w-md mx-auto px-3 pb-3">
-          <div className="glass-strong rounded-2xl flex justify-around py-2 no-scrollbar">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex flex-col items-center px-3 py-1 rounded-xl transition-all ${
-                  tab === t.id ? "text-mana-glow" : "text-mana-glow/40"
-                }`}
-              >
-                <span className="text-lg" style={{ filter: tab === t.id ? "drop-shadow(0 0 6px #6fd3ff)" : "none" }}>
-                  {t.icon}
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          {TABS.map((t) => {
+            const Icon = NAV_ICON[t.id];
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} data-active={active} className="rail-item w-full text-left">
+                <Icon size={20} style={{ filter: active ? "drop-shadow(0 0 6px var(--rank))" : "none" }} />
+                <span className="flex flex-col leading-none">
+                  <span className="title-font text-sm">{t.label}</span>
+                  <span className="label !tracking-[0.15em] mt-1">{t.sub}</span>
                 </span>
-                <span className="title-font text-[10px] mt-0.5">{t.label}</span>
               </button>
-            ))}
+            );
+          })}
+        </nav>
+        <div className="px-5 py-4 border-t" style={{ borderColor: "var(--line)" }}>
+          <p className="label">Hunter</p>
+          <p className="title-font text-[#eaf6ff] mt-0.5">{state.name}</p>
+          <p className="num text-[12px] mt-2" style={{ color: rank.color }}>
+            {rank.name}
+          </p>
+          <div className="mt-3 flex flex-col gap-1.5">{soundBtn}{resetBtn}</div>
+        </div>
+      </aside>
+
+      {/* ===== Main column ===== */}
+      <div className="lg:pl-[244px]">
+        <header className="lg:hidden flex items-center justify-between px-4 pt-5 pb-3 max-w-md mx-auto">
+          <div>
+            <p className="label">SOLO·DEVELOPING</p>
+            <p className="title-font text-lg text-glow" style={{ color: "var(--rank)" }}>
+              DAY <span className="num">{day}</span> / 90
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="label">{state.name}</p>
+            <p className="num text-[13px]" style={{ color: rank.color }}>{rank.name}</p>
+          </div>
+        </header>
+
+        <header className="hidden lg:flex items-center justify-between px-8 pt-7 pb-4 max-w-[1200px] mx-auto">
+          <div className="flex items-baseline gap-3">
+            <h1 className="title-font text-xl text-[#eef4ff]">{TABS.find((t) => t.id === tab)?.label}</h1>
+            <span className="label">{TABS.find((t) => t.id === tab)?.sub}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="label">RANK</span>
+            <span
+              className="num text-sm px-3 py-1 border"
+              style={{ color: rank.color, borderColor: `${rank.color}55`, boxShadow: `0 0 18px -8px ${rank.glow}` }}
+            >
+              {rank.name}
+            </span>
+          </div>
+        </header>
+
+        <main className="px-4 lg:px-8 pb-28 lg:pb-12 max-w-md lg:max-w-[1200px] mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
+            >
+              {tab === "home" && homeContent}
+              {tab === "plan" && <div className="lg:max-w-2xl"><DailyPlanView /></div>}
+              {tab === "curriculum" && <div className="lg:max-w-3xl"><CurriculumView /></div>}
+              {tab === "report" && <div className="lg:max-w-2xl"><WeeklyReportView /></div>}
+              {tab === "books" && <div className="lg:max-w-2xl"><BookManager /></div>}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* ===== Mobile bottom nav ===== */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
+        <div className="max-w-md mx-auto px-3 pb-3">
+          <div className="glass-strong flex justify-around py-2">
+            {TABS.map((t) => {
+              const Icon = NAV_ICON[t.id];
+              const active = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className="flex flex-col items-center gap-1 px-3 py-1 transition-colors"
+                  style={{ color: active ? "var(--rank)" : "rgba(150,160,180,0.5)" }}
+                >
+                  <Icon size={21} style={{ filter: active ? "drop-shadow(0 0 6px var(--rank))" : "none" }} />
+                  <span className="title-font text-[10px]">{t.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </nav>
@@ -202,6 +314,7 @@ export default function Home() {
         legend={punish?.legend || ""}
         onClose={() => setPunish(null)}
       />
+      <RankUpCeremony rank={rank} open={ceremony} onClose={() => setCeremony(false)} />
     </div>
   );
 }

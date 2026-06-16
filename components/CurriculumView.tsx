@@ -20,10 +20,10 @@ export default function CurriculumView() {
   const comm = communicationForDay(day);
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: "gym", label: "Gym", icon: "🏋️" },
-    { id: "maths", label: "Maths", icon: "🧮" },
-    { id: "comm", label: "Speak", icon: "🗣️" },
-    { id: "skin", label: "Skin", icon: "✨" },
+    { id: "gym", label: "Gym", icon: "" },
+    { id: "maths", label: "Maths", icon: "" },
+    { id: "comm", label: "Speak", icon: "" },
+    { id: "skin", label: "Skin", icon: "" },
   ];
 
   return (
@@ -60,7 +60,7 @@ export default function CurriculumView() {
               <p className="text-xs text-mana-glow/55">Rest {e.rest} · {e.form}</p>
             </div>
           ))}
-          {gym.finisher && <p className="text-xs text-arise/80">🔥 Finisher: {gym.finisher}</p>}
+          {gym.finisher && <p className="text-xs text-arise/80"> Finisher: {gym.finisher}</p>}
         </div>
       )}
 
@@ -74,7 +74,7 @@ export default function CurriculumView() {
             {maths.practice.map((p, i) => (
               <details key={i} className="text-sm">
                 <summary className="text-mana-glow/85 cursor-pointer">{i + 1}. {p.q}</summary>
-                <p className="text-jade/80 pl-4 mt-1">→ {p.a}</p>
+                <p className="text-jade/80 pl-4 mt-1"> {p.a}</p>
               </details>
             ))}
           </div>
@@ -89,19 +89,19 @@ export default function CurriculumView() {
             <p className="text-xs title-font text-arise/80 mb-1">TODAY'S DRILL</p>
             <p className="text-sm text-mana-glow/85">{comm.exercise}</p>
           </div>
-          {comm.phrase && <p className="text-sm italic text-gold/85">💬 {comm.phrase}</p>}
+          {comm.phrase && <p className="text-sm italic text-gold/85"> {comm.phrase}</p>}
         </div>
       )}
 
       {tab === "skin" && (
         <div className="space-y-3">
           <div className="glass rounded-2xl p-4">
-            <p className="title-font text-gold/90 text-sm mb-1">✨ TODAY'S GLOW TIP</p>
+            <p className="title-font text-gold/90 text-sm mb-1"> TODAY'S GLOW TIP</p>
             <p className="text-sm text-mana-glow/85">{skincareTipForDay(day)}</p>
             {isExfoliationDay(day) && <p className="text-xs text-jade/80 mt-2">Tonight is an EXFOLIATION night (gentle).</p>}
           </div>
-          <Routine title="☀️ MORNING ROUTINE" steps={MORNING_ROUTINE} />
-          <Routine title="🌙 EVENING ROUTINE" steps={EVENING_ROUTINE} />
+          <Routine title=" MORNING ROUTINE" steps={MORNING_ROUTINE} />
+          <Routine title=" EVENING ROUTINE" steps={EVENING_ROUTINE} />
         </div>
       )}
     </div>
@@ -116,7 +116,7 @@ function Routine({ title, steps }: { title: string; steps: { step: string; how: 
         <div key={i} className="rounded-lg bg-void-700/50 p-3 border border-void-500/40">
           <p className="text-sm text-mana-glow font-semibold">{s.step}</p>
           <p className="text-xs text-mana-glow/75">{s.how}</p>
-          <p className="text-[11px] text-mana-glow/45 mt-1">🔬 {s.science}</p>
+          <p className="text-[11px] text-mana-glow/45 mt-1"> {s.science}</p>
         </div>
       ))}
     </div>
