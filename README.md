@@ -2,7 +2,7 @@
 
 > *"Arise."* — A Solo Leveling–inspired personal transformation system for a real 90-day comeback.
 
-SoloDeveloping turns Ravi's daily grind — gym, study, discipline, skincare, clean food, building, maths — into an RPG of ascension. The System (an AI engine fed with the actual wisdom of real books and legends) reads yesterday's performance, your rank, your streaks, and your weak areas, then forges a personalised daily plan in the voices of Arnold, Alexander the Great, Buddha, Marcus Aurelius, James Clear and David Goggins.
+SoloDeveloping turns Ravi's daily grind — gym, study, discipline, skincare, clean food, building, maths — into an RPG of ascension. The System (an AI engine fed with the actual wisdom of real books and legends) reads yesterday's performance, your rank, your streaks, and your weak areas, then forges a personalised daily plan in the voices of nine legends — Arnold, Alexander the Great, Buddha, Marcus Aurelius, James Clear, David Goggins, Aristotle, Dr. Robert Glover and Robert Moore.
 
 Built with **Next.js 14 (App Router)**, **TailwindCSS**, **Framer Motion**. **Mobile-first.** **No database** — everything lives in `localStorage`. **One-click deploy to Vercel.**
 

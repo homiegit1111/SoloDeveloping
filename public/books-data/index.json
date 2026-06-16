@@ -80,6 +80,48 @@
       "chunkCount": 273,
       "file": "no-more-mr-nice-guy.json",
       "preloaded": true
+    },
+    {
+      "slug": "king-warrior-magician-lover",
+      "title": "King, Warrior, Magician, Lover",
+      "author": "Robert Moore & Douglas Gillette",
+      "categories": [
+        "masculine",
+        "psychology",
+        "identity"
+      ],
+      "pages": 92,
+      "chunkCount": 172,
+      "file": "king-warrior-magician-lover.json",
+      "preloaded": true
+    },
+    {
+      "slug": "max-muscle-plan",
+      "title": "The M.A.X. Muscle Plan 2.0",
+      "author": "Brad Schoenfeld",
+      "categories": [
+        "gym",
+        "nutrition",
+        "habits"
+      ],
+      "pages": 410,
+      "chunkCount": 384,
+      "file": "max-muscle-plan.json",
+      "preloaded": true
+    },
+    {
+      "slug": "muscle-strength-pyramid",
+      "title": "The Muscle & Strength Training Pyramid",
+      "author": "Eric Helms",
+      "categories": [
+        "gym",
+        "nutrition",
+        "habits"
+      ],
+      "pages": 288,
+      "chunkCount": 438,
+      "file": "muscle-strength-pyramid.json",
+      "preloaded": true
     }
   ]
 }

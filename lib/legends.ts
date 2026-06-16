@@ -14,6 +14,8 @@ import { LegendQuote } from "./types";
 //   Clear      -> habits / systems
 //   Goggins    -> pain / mental toughness (masculine)
 //   Aristotle  -> virtue / character / wisdom (study & self-mastery)
+//   Glover     -> social confidence / boundaries / Nice Guy recovery
+//   Moore      -> mature masculine archetypes (King/Warrior/Magician/Lover) -> identity & purpose
 // ============================================================
 
 export const LEGENDS = {
@@ -25,6 +27,7 @@ export const LEGENDS = {
   goggins: { name: "David Goggins", domain: "toughness", color: "#ff4d5e" },
   aristotle: { name: "Aristotle", domain: "virtue", color: "#c9a44c" },
   glover: { name: "Dr. Robert Glover", domain: "masculinity", color: "#5f9ea0" },
+  moore: { name: "Robert Moore", domain: "archetypes", color: "#b8860b" },
 } as const;
 
 export type LegendKey = keyof typeof LEGENDS;
@@ -95,6 +98,15 @@ export const LEGEND_LINES: Record<LegendKey, string[]> = {
     "Take full responsibility for your own life. Stop waiting for permission to become the integrated man.",
     "Surround yourself with men who hold you accountable. You become your own man in the company of other men.",
   ],
+  moore: [
+    "Access the King: bring order to your inner kingdom. A man who rules himself first can bless and build everything around him.",
+    "The Warrior energy is disciplined aggression aimed at a worthy goal. Decide, commit, and cut through — no half-measures.",
+    "The Magician is the man of knowledge and insight. Master your craft, study the patterns, and use what you know with intention.",
+    "The Lover keeps you alive and connected — to your body, your purpose, and your people. Don't go numb; feel it and channel it.",
+    "Boyhood (the immature masculine) seeks attention and runs from responsibility. Manhood claims it. Step up into the mature king.",
+    "Don't worship your own ego or collapse into the shadow. Stand in the center of the four archetypes and act from there.",
+    "A man who is not connected to his deep masculine energies becomes either a tyrant or a weakling. Access them on purpose, every day.",
+  ],
 };
 
 // Map a focus/habit to the legend that should coach it
@@ -107,6 +119,13 @@ export function legendForFocus(focus: string): LegendKey {
   if (f.includes("habit") || f.includes("streak") || f.includes("system")) return "clear";
   if (f.includes("pain") || f.includes("hard") || f.includes("tough") || f.includes("punish"))
     return "goggins";
+  if (
+    f.includes("archetype") || f.includes("king") || f.includes("warrior") ||
+    f.includes("magician") || f.includes("lover") || f.includes("identity") ||
+    f.includes("purpose") || f.includes("maturity") || f.includes("manhood") ||
+    f.includes("initiation")
+  )
+    return "moore";
   if (
     f.includes("social") || f.includes("communicat") || f.includes("boundary") ||
     f.includes("boundaries") || f.includes("assert") || f.includes("confidence") ||
