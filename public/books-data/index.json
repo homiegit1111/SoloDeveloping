@@ -24,6 +24,34 @@
       "chunkCount": 102,
       "file": "manmade.json",
       "preloaded": true
+    },
+    {
+      "slug": "complete-aristotle",
+      "title": "The Complete Aristotle (Ethics & Wisdom)",
+      "author": "Aristotle",
+      "categories": [
+        "philosophy",
+        "psychology",
+        "habits"
+      ],
+      "pages": 3354,
+      "chunkCount": 320,
+      "file": "complete-aristotle.json",
+      "preloaded": true
+    },
+    {
+      "slug": "cant-hurt-me",
+      "title": "Can't Hurt Me",
+      "author": "David Goggins",
+      "categories": [
+        "psychology",
+        "habits",
+        "masculine"
+      ],
+      "pages": 295,
+      "chunkCount": 476,
+      "file": "cant-hurt-me.json",
+      "preloaded": true
     }
   ]
 }

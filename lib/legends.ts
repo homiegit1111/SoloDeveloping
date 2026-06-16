@@ -13,6 +13,7 @@ import { LegendQuote } from "./types";
 //   Marcus     -> discipline / stoic control
 //   Clear      -> habits / systems
 //   Goggins    -> pain / mental toughness (masculine)
+//   Aristotle  -> virtue / character / wisdom (study & self-mastery)
 // ============================================================
 
 export const LEGENDS = {
@@ -22,6 +23,7 @@ export const LEGENDS = {
   marcus: { name: "Marcus Aurelius", domain: "discipline", color: "#a78bfa" },
   clear: { name: "James Clear", domain: "habits", color: "#6fd3ff" },
   goggins: { name: "David Goggins", domain: "toughness", color: "#ff4d5e" },
+  aristotle: { name: "Aristotle", domain: "virtue", color: "#c9a44c" },
 } as const;
 
 export type LegendKey = keyof typeof LEGENDS;
@@ -70,6 +72,18 @@ export const LEGEND_LINES: Record<LegendKey, string[]> = {
     "Motivation is crap. Motivation comes and goes. When you're driven, whatever is in front of you gets demolished.",
     "Suffering is the true test of life. Stay hard.",
     "You will never learn from people if you always tap dance around the truth. The truth: you can do more.",
+    "Look in the Accountability Mirror. Put a sticky note on it for every excuse and attack it one by one.",
+    "Callus your mind through suffering. The brain will quit at 40% — override it. Take souls.",
+    "Reach into your cookie jar. Remember every hard thing you already survived, and use it as fuel.",
+  ],
+  aristotle: [
+    "We are what we repeatedly do. Excellence, then, is not an act but a habit. Build it today.",
+    "Virtue is a state of character concerned with choice, lying in a mean - the middle between excess and deficiency. Find your mean.",
+    "The roots of education are bitter, but the fruit is sweet. Sit with the bitter study now.",
+    "Knowing yourself is the beginning of all wisdom. Be honest about your weak pillar.",
+    "Courage is the first of the virtues, because it makes all the others possible. Act despite the fear.",
+    "It is well to be up before daybreak, for such habits contribute to health, wealth, and wisdom.",
+    "Pleasure in the job puts perfection in the work. Love the discipline, not just the result.",
   ],
 };
 
@@ -83,6 +97,11 @@ export function legendForFocus(focus: string): LegendKey {
   if (f.includes("habit") || f.includes("streak") || f.includes("system")) return "clear";
   if (f.includes("pain") || f.includes("hard") || f.includes("tough") || f.includes("punish"))
     return "goggins";
+  if (
+    f.includes("study") || f.includes("maths") || f.includes("math") || f.includes("learn") ||
+    f.includes("wisdom") || f.includes("virtue") || f.includes("character") || f.includes("mind")
+  )
+    return "aristotle";
   return "alexander";
 }
 

@@ -22,7 +22,11 @@ Ravi uploads books **2 at a time** (context limits) and will say which categorie
 5. Add a human-readable wisdom file to `books-md/<category>/<slug>.md` summarising the *applied* lessons (this is for future agents and for grounding).
 6. If the book introduces a NEW legend voice (e.g. an Arnold autobiography, an Alexander biography, a Marcus Aurelius/Buddha text, a David Goggins book), wire that legend's voice/quotes into `lib/legends.ts` and make sure `lib/prompts.ts` tells the AI to use it for the right pillar.
 
-Books already loaded: **Glow From Within** (Joanna Vargas, skincare) and **MANMADE** (Chris Salgardo, grooming). Categories still wanted by Ravi (expect uploads): gym/training, communication, psychology, habits, masculine development, and biographies of Alexander, Buddha, Marcus Aurelius, Arnold, Goggins.
+Books already loaded (4): **Glow From Within** (skincare), **MANMADE** (grooming), **The Complete Aristotle** (philosophy/habits — curated to ~320 most relevant passages, the full 3,350pp would blow the localStorage quota), **Can't Hurt Me** (David Goggins — psychology/toughness). Ravi has ~5 more to upload, 2 at a time. Still wanted: gym/training, communication, biographies of Alexander/Arnold.
+
+**Scanned PDFs:** some books (e.g. Can't Hurt Me) are image-only with no text layer. Detect (pypdf/pymupdf returns ~0 chars) and OCR them: render pages at 150 dpi with PyMuPDF and read with `rapidocr-onnxruntime` (pure-python, no system binary, ~1.5s/page). Then chunk as normal.
+
+**Huge books:** if a book yields thousands of chunks (e.g. complete works), curate to the ~300 most transformation-relevant passages by keyword-relevance scoring (see how Aristotle was done) so localStorage stays under quota. Total across all books should stay well under ~3MB.
 
 ## Legend → pillar mapping (keep consistent)
 - Arnold Schwarzenegger → gym/body
