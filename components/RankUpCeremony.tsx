@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Rank } from "@/lib/types";
-import HunterCharacter from "./HunterCharacter";
+import HunterCanvas from "./HunterCanvas";
 import SystemWindow, { useTypewriter } from "./SystemWindow";
 import { rankUp as sndRankUp } from "@/lib/sound";
 
@@ -96,8 +96,8 @@ export default function RankUpCeremony({ rank, open, onClose }: { rank: Rank; op
               animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
               transition={{ duration: 1.4, ease: "easeOut" }}
             >
-              <div className="w-full max-w-sm" style={{ height: "78vh" }}>
-                <HunterCharacter rank={rank} condition={1} height={typeof window !== "undefined" ? Math.min(560, window.innerHeight * 0.78) : 520} />
+              <div className="w-full max-w-md" style={{ height: "82vh" }}>
+                <HunterCanvas rank={rank} condition={1} fill />
               </div>
             </motion.div>
           )}

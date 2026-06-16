@@ -30,7 +30,7 @@ export default function CurriculumView() {
     <div className="space-y-4">
       <div className="glass-strong system-border rounded-2xl p-4">
         <h2 className="title-font text-lg text-mana-glow text-glow mb-1">CURRICULA</h2>
-        <p className="text-sm text-mana-glow/70">Day {day} of 90 · built-in progressive programs, supplemented by your books.</p>
+        <p className="text-sm text-mana-glow/70">Day {day} of 90 · built-in progressive programs that level with your rank.</p>
       </div>
 
       <div className="flex gap-2">

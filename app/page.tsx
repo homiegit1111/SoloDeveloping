@@ -6,12 +6,11 @@ import { useApp } from "@/lib/context";
 import { rankForXP } from "@/lib/ranks";
 import { dayNumber, yesterdaySummary, overallCondition } from "@/lib/store";
 import { LEGEND_LINES, LEGENDS, pick } from "@/lib/legends";
-import RankPanel from "@/components/RankPanel";
+import HunterStage from "@/components/HunterStage";
 import StatBars from "@/components/StatBars";
 import HabitTracker from "@/components/HabitTracker";
 import DailyPlanView from "@/components/DailyPlanView";
 import WeeklyReportView from "@/components/WeeklyReportView";
-import BookManager from "@/components/BookManager";
 import CurriculumView from "@/components/CurriculumView";
 import Onboarding from "@/components/Onboarding";
 import JournalCard from "@/components/JournalCard";
@@ -24,14 +23,13 @@ import { isFrozen } from "@/lib/store";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
 
-type Tab = "home" | "plan" | "curriculum" | "report" | "books";
+type Tab = "home" | "plan" | "curriculum" | "report";
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
   { id: "home", label: "HQ", sub: "Status" },
   { id: "plan", label: "Plan", sub: "Today" },
   { id: "curriculum", label: "Train", sub: "Curriculum" },
   { id: "report", label: "Report", sub: "Weekly" },
-  { id: "books", label: "Books", sub: "Library" },
 ];
 
 export default function Home() {
@@ -153,13 +151,15 @@ export default function Home() {
 
   const homeContent = (
     <>
+      {/* ===== THE HUNTER — full-stage centerpiece. He IS the screen. ===== */}
+      <HunterStage rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
+
+      <p className="mono text-sm text-center text-[#9aa6bd] px-2 lg:px-12 leading-relaxed">
+        {rank.description}
+      </p>
+
+      {/* ===== Functional panels below the Hunter ===== */}
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-5">
-        <div className="lg:col-span-5 space-y-4">
-          <RankPanel rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
-          <div className="hidden lg:block">
-            <JournalCard />
-          </div>
-        </div>
         <div className="lg:col-span-7 space-y-4">
           <HabitTracker
             onAllComplete={() =>
@@ -170,12 +170,11 @@ export default function Home() {
               })
             }
           />
-          <StatBars state={state} />
         </div>
-      </div>
-
-      <div className="lg:hidden">
-        <JournalCard />
+        <div className="lg:col-span-5 space-y-4">
+          <StatBars state={state} />
+          <JournalCard />
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -271,7 +270,6 @@ export default function Home() {
               {tab === "plan" && <div className="lg:max-w-2xl"><DailyPlanView /></div>}
               {tab === "curriculum" && <div className="lg:max-w-3xl"><CurriculumView /></div>}
               {tab === "report" && <div className="lg:max-w-2xl"><WeeklyReportView /></div>}
-              {tab === "books" && <div className="lg:max-w-2xl"><BookManager /></div>}
             </motion.div>
           </AnimatePresence>
         </main>

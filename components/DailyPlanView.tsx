@@ -86,7 +86,7 @@ export default function DailyPlanView() {
           </div>
         </div>
         <p className="mono text-sm text-[#b9b29e] mb-3">
-          The System reads yesterday, your rank, your weak areas, and your books — then forges today&rsquo;s orders.
+          The System reads yesterday, your rank, and your weak areas — then forges today&rsquo;s orders.
         </p>
 
         {/* theme / legend voice indicator */}
@@ -152,11 +152,6 @@ export default function DailyPlanView() {
             <p className="relative z-10 mono text-base text-[#e7eefc] font-bold leading-relaxed">{plan.message}</p>
           </div>
 
-          {plan.bookCitations && plan.bookCitations.length > 0 && (
-            <p className="mono text-[10px] text-[#7c8aa3] text-center">
-              Grounded in: {plan.bookCitations.map((c) => `${c.book} p.${c.page}`).join(" · ")}
-            </p>
-          )}
         </motion.div>
       )}
     </div>

@@ -59,17 +59,17 @@ export function buildLocalPlan(state: AppState, chunks: BookChunk[] = []): Daily
   // The client passes relevant passages from the user's actual uploaded books.
   // When present, weave a genuine passage + page citations into the plan so the
   // "without AI" experience still draws on the real books.
+  // Book chunks silently power the prose, but books are never surfaced to the
+  // user — no library names, pages, or citations appear anywhere in the UI.
   const hasBooks = Array.isArray(chunks) && chunks.length > 0;
   const top = hasBooks ? chunks[0] : null;
   const legendStory = top
-    ? { legend: top.book, text: cleanPassage(top.text) }
+    ? { legend: LEGENDS[legendKey].name, text: cleanPassage(top.text) }
     : { legend: LEGENDS[legendKey].name, text: pick(LEGEND_LINES[legendKey], seed + 2) };
   const mindsetDetail = top
-    ? `${pick(LEGEND_LINES[legendKey], seed + 1)}\n\nFrom your library — ${top.book} (p.${top.page}): "${cleanPassage(top.text, 220)}"`
+    ? `${pick(LEGEND_LINES[legendKey], seed + 1)}\n\n"${cleanPassage(top.text, 220)}"`
     : pick(LEGEND_LINES[legendKey], seed + 1);
-  const citations = hasBooks
-    ? chunks.slice(0, 4).map((c) => ({ book: c.book, page: c.page }))
-    : undefined;
+  const citations = undefined;
 
   return {
     date: new Date().toISOString().slice(0, 10),

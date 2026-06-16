@@ -65,7 +65,10 @@ body {
     radial-gradient(135% 95% at 50% 38%, transparent 52%, rgba(0, 0, 0, 0.7)),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 2px, rgba(0, 0, 0, 0.12) 3px);
 }
-.bg-system > * { position: relative; z-index: 1; }
+/* Lift normal content above the fixed ::before grid — but never override
+   elements that are intentionally fixed/absolute (sidebar, bottom nav, overlays),
+   otherwise the fixed sidebar collapses into flow and opens a huge empty void. */
+.bg-system > *:not([class*="fixed"]):not([class*="absolute"]) { position: relative; z-index: 1; }
 
 /* penalty zone — red cracked border bleeds in from the edges */
 .penalty-zone::after {
