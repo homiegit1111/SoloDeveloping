@@ -165,6 +165,47 @@ export const IconCloud = (p: P) => (
   </S>
 );
 
+/* ---------- Report / evaluation icons ---------- */
+export const IconTarget = (p: P) => (
+  <S {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="12" cy="12" r="0.6" />
+  </S>
+);
+export const IconBrain = (p: P) => (
+  <S {...p}>
+    <path d="M12 5a3 3 0 0 0-5.5 1.6A3 3 0 0 0 5 12a3 3 0 0 0 1.5 5A3 3 0 0 0 12 18.5" />
+    <path d="M12 5a3 3 0 0 1 5.5 1.6A3 3 0 0 1 19 12a3 3 0 0 1-1.5 5A3 3 0 0 1 12 18.5" />
+    <path d="M12 5v13.5" />
+  </S>
+);
+export const IconCrown = (p: P) => (
+  <S {...p}>
+    <path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7Z" />
+    <path d="M5 19h14" />
+  </S>
+);
+export const IconGavel = (p: P) => (
+  <S {...p}>
+    <path d="m6 13 5-5m3 3-5 5" />
+    <path d="m13 6 5 5M9.5 9.5 14.5 14.5" />
+    <path d="M4 20h8" />
+    <path d="m3 17 4-4" />
+  </S>
+);
+export const IconArrowMark = (p: P) => (
+  <S {...p}>
+    <path d="M4 12h14m0 0-5-5m5 5-5 5" />
+  </S>
+);
+export const IconComms = (p: P) => (
+  <S {...p}>
+    <path d="M4 5h16v10H9l-4 4v-4H4V5Z" />
+    <path d="M8 9h8M8 12h5" />
+  </S>
+);
+
 /* ---------- Lookup maps ---------- */
 export const HABIT_ICON: Record<string, (p: P) => JSX.Element> = {
   gym: IconGym,

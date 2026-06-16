@@ -183,9 +183,11 @@ export default function Home() {
         <div className="lg:col-span-5 space-y-4">
           <StatBars state={state} />
           <LessonCard onOpenLibrary={openLibrary} />
-          <JournalCard />
         </div>
       </div>
+
+      {/* Evening reflection — full-width night log */}
+      <JournalCard />
 
       <div className="flex justify-center lg:justify-end gap-5 pt-1">
         {soundBtn}
@@ -275,7 +277,7 @@ export default function Home() {
               {tab === "home" && homeContent}
               {tab === "plan" && <DailyPlanView />}
               {tab === "library" && <LibraryView initialSlug={libSlug} clearInitial={() => setLibSlug(null)} />}
-              {tab === "report" && <div className="lg:max-w-3xl"><WeeklyReportView /></div>}
+              {tab === "report" && <WeeklyReportView />}
             </motion.div>
           </AnimatePresence>
         </main>
