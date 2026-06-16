@@ -65,8 +65,9 @@ async function callGroq(system: string, user: string, maxTokens: number): Promis
 // Current Gemini models (v1beta generateContent). Tried in order; if one 404s
 // (retired/renamed model, e.g. the old gemini-1.5-flash), we fall through to the next.
 const GEMINI_MODELS = [
-  "gemini-2.0-flash",
+  "gemini-3.5-flash",
   "gemini-2.5-flash",
+  "gemini-2.0-flash",
   "gemini-flash-latest",
   "gemini-2.0-flash-001",
 ];
