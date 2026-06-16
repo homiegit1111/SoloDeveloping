@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const chunks = body.chunks || [];
 
   // Always compute a strong local plan as the floor / fallback.
-  const local = buildLocalPlan(state);
+  const local = buildLocalPlan(state, chunks);
 
   // If the user disabled AI, return local immediately.
   if (state.settings && state.settings.aiEnabled === false) {

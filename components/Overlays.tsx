@@ -52,9 +52,13 @@ export function RewardOverlay({
             initial={{ scale: 0.6, y: 30 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.6, opacity: 0 }}
-            className="glass-strong rounded-2xl p-7 text-center max-w-sm relative z-10"
+            className="sys-window sys-corner p-7 text-center max-w-sm relative z-10"
             style={{ boxShadow: "0 0 40px rgba(255,206,84,0.5)", borderColor: "rgba(255,206,84,0.6)" }}
           >
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gold/30">
+              <span className="grid place-items-center w-9 h-9 rounded-full border-2 border-gold text-gold text-lg" style={{ boxShadow: "0 0 10px rgba(255,206,84,0.6)" }}>!</span>
+              <span className="title-font tracking-[0.25em] text-gold text-glow text-lg">NOTIFICATION</span>
+            </div>
             <p className="title-font text-gold tracking-[0.3em] text-xs mb-2 text-glow">LEVEL UP</p>
             <h2 className="title-font text-2xl font-black text-gold text-glow mb-1">{title}</h2>
             <p className="text-mana-glow/85 mb-4">{subtitle}</p>
@@ -100,9 +104,13 @@ export function PunishmentOverlay({
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="glass-strong rounded-2xl p-7 text-center max-w-sm relative z-10 animate-shake"
+            className="sys-window sys-corner p-7 text-center max-w-sm relative z-10 animate-shake"
             style={{ boxShadow: "0 0 40px rgba(255,77,94,0.45)", borderColor: "rgba(255,77,94,0.6)" }}
           >
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-ember/30">
+              <span className="grid place-items-center w-9 h-9 rounded-full border-2 border-ember text-ember text-lg" style={{ boxShadow: "0 0 10px rgba(255,77,94,0.6)" }}>!</span>
+              <span className="title-font tracking-[0.25em] text-ember text-glow text-lg">NOTIFICATION</span>
+            </div>
             <p className="title-font text-ember tracking-[0.3em] text-xs mb-2 text-glow">⚠ PENALTY ZONE ⚠</p>
             <h2 className="title-font text-2xl font-black text-ember text-glow mb-1">YOU FELL BEHIND</h2>
             <p className="text-mana-glow/85 mb-4">

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { rankForXP } from "@/lib/ranks";
-import { dayNumber, yesterdaySummary } from "@/lib/store";
+import { dayNumber, yesterdaySummary, overallCondition } from "@/lib/store";
 import { LEGEND_LINES, LEGENDS, legendForFocus, pick } from "@/lib/legends";
 import RankPanel from "@/components/RankPanel";
 import StatBars from "@/components/StatBars";
@@ -43,6 +43,7 @@ export default function Home() {
 
   const rank = useMemo(() => rankForXP(state.totalXP), [state.totalXP]);
   const day = useMemo(() => (ready ? dayNumber(state) : 1), [state, ready]);
+  const condition = useMemo(() => (ready ? overallCondition(state) : 0), [state, ready]);
 
   // Determine if onboarding is needed (first ever run)
   const needsOnboarding =
@@ -130,7 +131,7 @@ export default function Home() {
         >
           {tab === "home" && (
             <div className="space-y-4">
-              <RankPanel rank={rank} totalXP={state.totalXP} />
+              <RankPanel rank={rank} totalXP={state.totalXP} condition={condition} />
               <HabitTracker
                 onAllComplete={() =>
                   setReward({

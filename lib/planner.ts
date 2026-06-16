@@ -1,4 +1,4 @@
-import { AppState, DailyPlan, WeeklyReport } from "./types";
+import { AppState, BookChunk, DailyPlan, WeeklyReport } from "./types";
 import { mathsForDay } from "../data/curriculum/maths";
 import { communicationForDay } from "../data/curriculum/communication";
 import { skincareTipForDay, isExfoliationDay } from "../data/curriculum/skincare";
@@ -13,7 +13,17 @@ import { rankForXP, nextRank } from "./ranks";
 // scaffold and rewrites the prose + injects real book quotes.
 // ============================================================
 
-export function buildLocalPlan(state: AppState): DailyPlan {
+// Trim a raw book chunk into a clean, readable passage that ends on a sentence.
+function cleanPassage(text: string, max = 300): string {
+  let t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  t = t.slice(0, max);
+  const lastStop = Math.max(t.lastIndexOf(". "), t.lastIndexOf("! "), t.lastIndexOf("? "));
+  if (lastStop > 120) t = t.slice(0, lastStop + 1);
+  return t.trim() + (t.endsWith(".") || t.endsWith("!") || t.endsWith("?") ? "" : "…");
+}
+
+export function buildLocalPlan(state: AppState, chunks: BookChunk[] = []): DailyPlan {
   const day = dayNumber(state);
   const seed = day + state.totalXP;
   const y = yesterdaySummary(state);
@@ -45,6 +55,22 @@ export function buildLocalPlan(state: AppState): DailyPlan {
     ? pick(LEGEND_LINES.goggins, seed)
     : pick(LEGEND_LINES[legendKey], seed);
 
+  // ---- REAL book quotes (no AI needed) ----
+  // The client passes relevant passages from the user's actual uploaded books.
+  // When present, weave a genuine passage + page citations into the plan so the
+  // "without AI" experience still draws on the real books.
+  const hasBooks = Array.isArray(chunks) && chunks.length > 0;
+  const top = hasBooks ? chunks[0] : null;
+  const legendStory = top
+    ? { legend: top.book, text: cleanPassage(top.text) }
+    : { legend: LEGENDS[legendKey].name, text: pick(LEGEND_LINES[legendKey], seed + 2) };
+  const mindsetDetail = top
+    ? `${pick(LEGEND_LINES[legendKey], seed + 1)}\n\nFrom your library — ${top.book} (p.${top.page}): "${cleanPassage(top.text, 220)}"`
+    : pick(LEGEND_LINES[legendKey], seed + 1);
+  const citations = hasBooks
+    ? chunks.slice(0, 4).map((c) => ({ book: c.book, page: c.page }))
+    : undefined;
+
   return {
     date: new Date().toISOString().slice(0, 10),
     generatedBy: "local",
@@ -69,13 +95,11 @@ export function buildLocalPlan(state: AppState): DailyPlan {
     },
     mindset: {
       title: `Lesson from ${LEGENDS[legendKey].name}`,
-      detail: pick(LEGEND_LINES[legendKey], seed + 1),
+      detail: mindsetDetail,
     },
-    legendStory: {
-      legend: LEGENDS[legendKey].name,
-      text: pick(LEGEND_LINES[legendKey], seed + 2),
-    },
+    legendStory,
     message,
+    bookCitations: citations,
   };
 }
 

@@ -1,6 +1,6 @@
 // Pure state helpers — safe to import on both server and client.
 // localStorage access is guarded by `typeof window` checks.
-import { AppState, DayRecord, HabitId, BookChunk, BookMeta } from "./types";
+import { AppState, DayRecord, HabitId, BookChunk, BookMeta, StatKey } from "./types";
 import { ALL_HABIT_IDS, HABIT_BY_ID, dayXP } from "./habits";
 import { rankForXP } from "./ranks";
 
@@ -186,6 +186,51 @@ export function recomputeDerived(state: AppState) {
     if (last && daysBetween(last, today) > 1 && !bridged(last, today)) streak = 0;
     state.habits[id] = { streak, best, lastCompleted: last, totalDone: total };
   }
+}
+
+// ============================================================
+// LIVING CONDITION MODEL
+// The Hunter is alive: each stat has a "condition" (0..1) based on
+// how consistently you've fed it in the last 7 days, recency-weighted.
+// Neglect a quest → that stat's condition DECAYS toward 0 (he weakens
+// there). Keep feeding it → it climbs toward 1 (he grows strong & blazes).
+// This drives the character's aura, flames, pose, and the stat bars.
+// ============================================================
+const STAT_ORDER: StatKey[] = ["STR", "INT", "WIL", "CHA", "VIT", "CRE"];
+
+export function statCondition(state: AppState): Record<StatKey, number> {
+  const days = 7;
+  const now = Date.now();
+  const byStat: Partial<Record<StatKey, HabitId[]>> = {};
+  for (const id of ALL_HABIT_IDS) {
+    const s = HABIT_BY_ID[id].stat;
+    (byStat[s] ||= []).push(id);
+  }
+  const out = {} as Record<StatKey, number>;
+  for (const stat of STAT_ORDER) {
+    const ids = byStat[stat] || [];
+    if (!ids.length) { out[stat] = 0; continue; }
+    let num = 0, den = 0;
+    for (let i = 0; i < days; i++) {
+      const d = todayStr(new Date(now - i * 86400000));
+      const w = Math.pow(0.82, i); // recent days matter most
+      const rec = state.history[d];
+      for (const id of ids) {
+        den += w;
+        if (rec?.completed.includes(id)) num += w;
+      }
+    }
+    out[stat] = den > 0 ? num / den : 0;
+  }
+  return out;
+}
+
+// Overall vitality 0..1 — average of stat conditions. Drives the Hunter's
+// global aura/flame intensity and his weak↔strong pose.
+export function overallCondition(state: AppState): number {
+  const c = statCondition(state);
+  const v = STAT_ORDER.map((s) => c[s]);
+  return v.reduce((a, b) => a + b, 0) / v.length;
 }
 
 // ----- Streak Freeze economy -----
