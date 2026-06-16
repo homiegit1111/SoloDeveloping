@@ -152,7 +152,7 @@ export default function Home() {
       {/* ===== THE HUNTER — full-stage centerpiece. He IS the screen. ===== */}
       <HunterStage rank={rank} totalXP={state.totalXP} condition={condition} penalty={penaltyActive} />
 
-      <p className="mono text-sm text-center text-[#9aa6bd] px-2 lg:px-12 leading-relaxed">
+      <p className="mono text-[15px] text-center text-[#c2ccdb] px-2 lg:px-12 leading-relaxed max-w-2xl mx-auto">
         {rank.description}
       </p>
 
@@ -265,7 +265,8 @@ export default function Home() {
               className="space-y-4"
             >
               {tab === "home" && homeContent}
-              {tab === "plan" && <div className="lg:max-w-2xl"><DailyPlanView /></div>}              {tab === "report" && <div className="lg:max-w-2xl"><WeeklyReportView /></div>}
+              {tab === "plan" && <DailyPlanView />}
+              {tab === "report" && <div className="lg:max-w-3xl"><WeeklyReportView /></div>}
             </motion.div>
           </AnimatePresence>
         </main>

@@ -6,7 +6,7 @@ import { useApp } from "@/lib/context";
 import { DailyPlan } from "@/lib/types";
 import { todayStr, activeChunks } from "@/lib/store";
 import { diagnose } from "@/lib/diagnosis";
-import { retrieveAll, domainChunksOf } from "@/lib/retrieval";
+import { retrieveAll, domainChunksOf, Passage } from "@/lib/retrieval";
 
 const SECTIONS: { key: keyof DailyPlan; label: string; code: string }[] = [
   { key: "gym", label: "Physical Conditioning", code: "DOSSIER · GYM" },
@@ -34,6 +34,7 @@ export default function DailyPlanView() {
   const [source, setSource] = useState<string>(existing?.generatedBy || "");
   const [err, setErr] = useState("");
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [readings, setReadings] = useState<Passage[]>([]);
 
   const dx = diagnose(state);
 
@@ -46,6 +47,7 @@ export default function DailyPlanView() {
       const d = diagnose(state);
       const passages = retrieveAll(activeChunks(state), d);
       const domainChunks = domainChunksOf(passages);
+      setReadings(Object.values(passages).flat() as Passage[]);
       const res = await fetch("/api/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,10 +110,16 @@ export default function DailyPlanView() {
       </div>
 
       {plan && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid gap-4 lg:grid-cols-[1.25fr_1fr] lg:items-start"
+        >
+          {/* ===== LEFT COLUMN — the orders ===== */}
+          <div className="space-y-3 min-w-0">
           <div className="dossier p-4 border-l-2" style={{ borderColor: "var(--rank)" }}>
-            <p className="title-font text-[#ece3cf] mb-1">{plan.greeting}</p>
-            <p className="mono text-sm text-[#b9b29e]">{plan.verdictOnYesterday}</p>
+            <p className="title-font text-lg text-[#ece3cf] mb-1">{plan.greeting}</p>
+            <p className="mono text-[15px] text-[#cabfa6] leading-relaxed">{plan.verdictOnYesterday}</p>
             <div className="mt-3 p-3" style={{ background: "color-mix(in srgb, var(--rank) 10%, transparent)", borderLeft: "2px solid var(--rank)" }}>
               <p className="mono text-sm" style={{ color: "var(--rank)" }}>▸ {plan.focus}</p>
             </div>
@@ -157,18 +165,42 @@ export default function DailyPlanView() {
               </button>
             );
           })}
+          </div>
 
-          {plan.legendStory?.text && (
-            <div className="dossier p-4 border-l-2" style={{ borderColor: "#C9A84C" }}>
-              <p className="title-font text-xs text-[#C9A84C] mb-1">FROM {plan.legendStory.legend.toUpperCase()}</p>
-              <p className="mono text-sm text-[#ddd6c4] italic leading-relaxed">{plan.legendStory.text}</p>
+          {/* ===== RIGHT COLUMN — knowledge from the books + the System's word ===== */}
+          <div className="space-y-3 min-w-0">
+            {/* TODAY'S READINGS — the actual passages the System pulled from the books */}
+            {readings.length > 0 && (
+              <div className="dossier p-4">
+                <p className="label !text-[#b59b6a] mb-2">FROM THE BOOKS · TODAY&rsquo;S READINGS</p>
+                <div className="space-y-3">
+                  {readings.map((p, i) => (
+                    <div key={p.chunk?.id || i} className="border-l-2 pl-3" style={{ borderColor: "color-mix(in srgb, var(--rank) 45%, transparent)" }}>
+                      <p className="mono text-[14px] text-[#ddd6c4] leading-relaxed">&ldquo;{p.text}&rdquo;</p>
+                      <p className="label !tracking-[0.12em] mt-1.5 !text-[#7e7561]">
+                        {p.author} · {p.book}{p.page ? ` · p.${p.page}` : ""}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mono text-[12px] text-[#8a8270] mt-3 italic">
+                  These are the exact passages that forged today&rsquo;s orders. Read them — that&rsquo;s the knowledge.
+                </p>
+              </div>
+            )}
+
+            {plan.legendStory?.text && (
+              <div className="dossier p-4 border-l-2" style={{ borderColor: "#C9A84C" }}>
+                <p className="title-font text-xs text-[#C9A84C] mb-1">FROM {plan.legendStory.legend.toUpperCase()}</p>
+                <p className="mono text-[15px] text-[#ddd6c4] italic leading-relaxed">{plan.legendStory.text}</p>
+              </div>
+            )}
+
+            <div className="sys-window sys-corner p-4 text-center relative overflow-hidden">
+              <div className="scanline" />
+              <p className="relative z-10 label mb-1">THE SYSTEM SPEAKS</p>
+              <p className="relative z-10 mono text-base text-[#e7eefc] font-semibold leading-relaxed">{plan.message}</p>
             </div>
-          )}
-
-          <div className="sys-window sys-corner p-4 text-center relative overflow-hidden">
-            <div className="scanline" />
-            <p className="relative z-10 label mb-1">THE SYSTEM SPEAKS</p>
-            <p className="relative z-10 mono text-base text-[#e7eefc] font-bold leading-relaxed">{plan.message}</p>
           </div>
         </motion.div>
       )}

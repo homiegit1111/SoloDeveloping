@@ -10,7 +10,8 @@
 
 :root {
   --font-display: "Syne", "Segoe UI", sans-serif;
-  --font-body: "Space Mono", ui-monospace, "SF Mono", monospace;
+  /* Inter for readable body copy; Space Mono kept for terminal labels/codes only. */
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SF Mono", monospace;
 
   /* RANK COLOR — overwritten live by page.tsx. Bleeds into the whole UI. */
@@ -25,8 +26,8 @@
   --crimson: #ef4444;
   --line: color-mix(in srgb, var(--rank) 18%, transparent);
   --line-strong: color-mix(in srgb, var(--rank) 38%, transparent);
-  --ink: #e7ecf5;
-  --ink-dim: #8590a6;
+  --ink: #eef2f8;
+  --ink-dim: #aab4c6;
 }
 
 html,
@@ -34,6 +35,9 @@ body {
   background: var(--void);
   color: var(--ink);
   font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
@@ -62,8 +66,8 @@ body {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(135% 95% at 50% 38%, transparent 52%, rgba(0, 0, 0, 0.7)),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 2px, rgba(0, 0, 0, 0.12) 3px);
+    radial-gradient(135% 95% at 50% 38%, transparent 60%, rgba(0, 0, 0, 0.55)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 3px, rgba(0, 0, 0, 0.05) 4px);
 }
 /* Lift normal content above the fixed ::before grid — but never override
    elements that are intentionally fixed/absolute (sidebar, bottom nav, overlays),
@@ -101,7 +105,12 @@ body {
   color: color-mix(in srgb, var(--ink-dim) 90%, var(--rank));
 }
 .num { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
-.mono { font-family: var(--font-mono); }
+/* Body/reading text. Inter for legibility (was monospace — too hard to read in volume).
+   Use .term for genuine terminal/monospace accents. */
+.mono { font-family: var(--font-body); letter-spacing: 0; }
+.term { font-family: var(--font-mono); }
+/* readable long-form copy helper */
+.readable { font-size: 0.95rem; line-height: 1.65; color: var(--ink); }
 .text-glow { text-shadow: 0 0 16px var(--rank-glow); }
 .text-glow-crimson { text-shadow: 0 0 16px rgba(239, 68, 68, 0.6); }
 .rank-text { color: var(--rank); }
@@ -211,8 +220,8 @@ body {
   position: absolute;
   left: 0; right: 0; top: 0;
   height: 26%;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--rank) 9%, transparent), transparent);
-  animation: scanMove 6s linear infinite;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--rank) 5%, transparent), transparent);
+  animation: scanMove 9s linear infinite;
 }
 @keyframes scanMove {
   0% { transform: translateY(-120%); }
@@ -385,4 +394,13 @@ body[data-rank="SS-RANK"] .bg-system {
     linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 54px 54px, 54px 54px;
+}
+
+/* ============================================================
+   READABILITY / CALM — respect reduced-motion, kill perpetual
+   ambient animations so text is easy to read (less "fancy").
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .sys-bar, .scanline::after, .animate-scan,
+  .penalty-zone::after, .bg-system { animation: none !important; }
 }
