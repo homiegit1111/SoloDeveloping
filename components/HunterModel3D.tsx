@@ -253,9 +253,8 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
     const box2 = new THREE.Box3().setFromObject(scene);
     const ctr2 = box2.getCenter(new THREE.Vector3());
     scene.position.set(-ctr2.x, -ctr2.y, -ctr2.z);
-
-    // Rotate 180° so the character faces the camera (GLB exports face -Z)
-    scene.rotation.y = Math.PI;
+    // NOTE: do NOT set rotation here — useFrame owns all rotation via the group
+    // (scene.rotation + group.rotation would stack and cancel each other out)
 
     setModelH(TARGET);
     setFitted(true);
