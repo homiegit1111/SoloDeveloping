@@ -16,69 +16,20 @@ import { Rank } from "@/lib/types";
 // fa=floatAmp  fs=floatSpeed  sa=swayAmp
 // pc=particleCount  ps=particleSpeed
 // em=emissiveIntensity  kl=keyLight  rl=rimLight
+// Minimum animation baselines — even UNRANKED breathes and sways
+const FA_MIN = 0.035; // float amplitude minimum
+const SA_MIN = 0.02;  // sway amplitude minimum
+const FS_MIN = 0.6;   // float speed minimum
+
 const R = [
-  { fa: 0.006, fs: 0.35, sa: 0.008, pc: 0, ps: 0, em: 0.0, kl: 1.8, rl: 0.5 }, // 0 UNRANKED
-  {
-    fa: 0.012,
-    fs: 0.5,
-    sa: 0.015,
-    pc: 10,
-    ps: 0.4,
-    em: 0.04,
-    kl: 2.2,
-    rl: 0.8,
-  }, // 1 E
-  {
-    fa: 0.022,
-    fs: 0.62,
-    sa: 0.025,
-    pc: 22,
-    ps: 0.7,
-    em: 0.1,
-    kl: 2.8,
-    rl: 1.2,
-  }, // 2 D
-  {
-    fa: 0.035,
-    fs: 0.74,
-    sa: 0.035,
-    pc: 38,
-    ps: 1.0,
-    em: 0.17,
-    kl: 3.4,
-    rl: 1.6,
-  }, // 3 C
-  {
-    fa: 0.052,
-    fs: 0.86,
-    sa: 0.048,
-    pc: 58,
-    ps: 1.4,
-    em: 0.24,
-    kl: 4.2,
-    rl: 2.2,
-  }, // 4 B
-  { fa: 0.075, fs: 1.0, sa: 0.06, pc: 85, ps: 1.9, em: 0.33, kl: 5.2, rl: 3.0 }, // 5 A
-  {
-    fa: 0.105,
-    fs: 1.2,
-    sa: 0.075,
-    pc: 130,
-    ps: 2.6,
-    em: 0.46,
-    kl: 7.0,
-    rl: 4.5,
-  }, // 6 S
-  {
-    fa: 0.15,
-    fs: 1.55,
-    sa: 0.1,
-    pc: 200,
-    ps: 3.8,
-    em: 0.65,
-    kl: 10.0,
-    rl: 7.0,
-  }, // 7 SS
+  { fa: 0.04,  fs: 0.7,  sa: 0.022, pc: 6,   ps: 0.35, em: 0.03, kl: 2.2, rl: 1.2 }, // 0 UNRANKED
+  { fa: 0.05,  fs: 0.82, sa: 0.028, pc: 14,  ps: 0.5,  em: 0.06, kl: 2.8, rl: 1.5 }, // 1 E
+  { fa: 0.065, fs: 0.95, sa: 0.036, pc: 26,  ps: 0.75, em: 0.12, kl: 3.4, rl: 1.9 }, // 2 D
+  { fa: 0.085, fs: 1.05, sa: 0.046, pc: 42,  ps: 1.05, em: 0.19, kl: 4.0, rl: 2.4 }, // 3 C
+  { fa: 0.11,  fs: 1.18, sa: 0.058, pc: 62,  ps: 1.5,  em: 0.27, kl: 5.0, rl: 3.0 }, // 4 B
+  { fa: 0.14,  fs: 1.32, sa: 0.072, pc: 90,  ps: 2.0,  em: 0.36, kl: 6.0, rl: 4.0 }, // 5 A
+  { fa: 0.18,  fs: 1.55, sa: 0.09,  pc: 135, ps: 2.8,  em: 0.50, kl: 8.0, rl: 5.5 }, // 6 S
+  { fa: 0.24,  fs: 1.9,  sa: 0.12,  pc: 210, ps: 4.0,  em: 0.70, kl: 11.0,rl: 8.0 }, // 7 SS
 ] as const;
 
 // ── RISING MANA PARTICLES ─────────────────────────────────────
@@ -287,21 +238,24 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   const cfg = R[Math.min(rankIndex, R.length - 1)];
   const effectColor = penalty ? "#ef4444" : rankColor;
 
-  // ── Auto-fit: scale model to fill ~85% of the stage vertically ──
+  // ── Auto-fit: scale + face camera ──
   useEffect(() => {
-    // Measure raw (unscaled) bounding box of our clone
+    // Measure bounding box of our clone (raw orientation from export)
     const box = new THREE.Box3().setFromObject(scene);
     const size = box.getSize(new THREE.Vector3());
 
-    // Target: model should be 3.2 "units" tall so it fills the stage
+    // Scale so the model is 3.2 units tall (fills stage at fov=50, d=4.2)
     const TARGET = 3.2;
     const s = TARGET / Math.max(size.y, 0.001);
-
-    // Apply scale then re-center to world origin
     scene.scale.set(s, s, s);
+
+    // Re-center at world origin
     const box2 = new THREE.Box3().setFromObject(scene);
     const ctr2 = box2.getCenter(new THREE.Vector3());
     scene.position.set(-ctr2.x, -ctr2.y, -ctr2.z);
+
+    // Rotate 180° so the character faces the camera (GLB exports face -Z)
+    scene.rotation.y = Math.PI;
 
     setModelH(TARGET);
     setFitted(true);
@@ -331,11 +285,16 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
-    groupRef.current.position.y = Math.sin(t * cfg.fs * 1.0) * cfg.fa;
-    groupRef.current.rotation.y = Math.sin(t * 0.28) * cfg.sa;
-    // SS floats upward slightly
+    // Breathing float — always at least FA_MIN so it never looks frozen
+    const fa = Math.max(cfg.fa, FA_MIN);
+    const fs = Math.max(cfg.fs, FS_MIN);
+    const sa = Math.max(cfg.sa, SA_MIN);
+    groupRef.current.position.y = Math.sin(t * fs) * fa;
+    // Gentle facing sway — orbits around Math.PI so face stays forward
+    groupRef.current.rotation.y = Math.PI + Math.sin(t * 0.32) * sa;
+    // SS floats upward
     if (rankIndex >= 7) {
-      groupRef.current.position.y += 0.12 + Math.sin(t * 0.5) * 0.05;
+      groupRef.current.position.y += 0.14 + Math.sin(t * 0.5) * 0.06;
     }
   });
 
@@ -348,55 +307,63 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   return (
     <group ref={groupRef}>
       {/* ─ Lighting ─ */}
-      {/* Ambient — always some base visibility */}
-      <ambientLight intensity={0.4 + rankIndex * 0.04} />
+      {/* Strong ambient so the model is always clearly visible */}
+      <ambientLight intensity={0.7 + rankIndex * 0.05} />
 
+      {/* Warm front-fill — illuminates the face the camera now sees */}
+      <directionalLight
+        position={[0, 1.2, 3]}
+        intensity={kl * 0.65}
+        color="#e8d5b0"
+      />
       {/* Key light — rank-colored from above-front */}
       <directionalLight
-        position={[0.6, 3, 2.5]}
+        position={[1.2, 3, 2]}
         intensity={kl}
         color={effectColor}
         castShadow={false}
       />
-      {/* Cool counter-fill so shadows aren't pure black */}
+      {/* Cool counter-fill — soft blue bounce so shadows have depth */}
       <directionalLight
-        position={[-2.5, 1.5, 1]}
-        intensity={kl * 0.22}
-        color="#5577cc"
+        position={[-2.5, 1.0, 1]}
+        intensity={kl * 0.3}
+        color="#4466aa"
       />
       {/* Rim light from behind — dramatic edge glow */}
       <pointLight
-        position={[0, half * 0.4, -2.5]}
+        position={[0, half * 0.3, -2]}
         color={effectColor}
-        intensity={rl}
+        intensity={rl * 1.4}
         distance={10}
       />
       {/* Ground uplift */}
       <pointLight
-        position={[0, -half - 0.5, 0.8]}
+        position={[0, -half - 0.3, 1]}
         color={effectColor}
-        intensity={rl * 0.55}
-        distance={6}
+        intensity={rl * 0.8}
+        distance={7}
       />
 
       {/* ─ Model ─ */}
       <primitive object={scene} />
 
-      {/* ─ Effects (scale with rank) ─ */}
+      {/* ─ Effects ─ */}
       <ManaParticles
         color={effectColor}
         count={cfg.pc}
         speed={cfg.ps}
         modelHeight={modelH}
       />
+      {/* Always show aura shell — even UNRANKED has a hint of power */}
       <AuraShell
         color={effectColor}
-        intensity={cfg.em * 2.5 + condition * 0.35}
+        intensity={Math.max(cfg.em * 2.5, 0.12) + condition * 0.4}
         modelHeight={modelH}
       />
+      {/* Always show ground disc — roots the model in the scene */}
       <GroundDisc
         color={effectColor}
-        intensity={cfg.em * 2 + condition * 0.25}
+        intensity={Math.max(cfg.em * 2, 0.18) + condition * 0.3}
       />
       {/* Shadow wings only for S & SS */}
       <ShadowWings
@@ -404,12 +371,6 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
         active={rankIndex >= 6}
         modelHeight={modelH}
       />
-
-      {/* Ground shadow contact */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -half, 0]}>
-        <planeGeometry args={[2, 2]} />
-        <shadowMaterial opacity={0.3} />
-      </mesh>
     </group>
   );
 }
@@ -455,9 +416,8 @@ export default function HunterModel3D({
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <Canvas
-        // Camera positioned for a 3.2-unit tall model with fov=42
-        // d = (1.6 / tan(21°)) * 1.2 ≈ 4.99 → use 5.0
-        camera={{ position: [0, 0.1, 5.0], fov: 42 }}
+        // Camera: slightly elevated to frame chest/face area; d=4.2 for tighter framing
+        camera={{ position: [0, 0.6, 4.2], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
         dpr={[1, 1.5]}
