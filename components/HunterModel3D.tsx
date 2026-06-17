@@ -3,6 +3,7 @@
 import { Suspense, useRef, useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
+import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 import { Rank } from "@/lib/types";
 
@@ -16,20 +17,22 @@ import { Rank } from "@/lib/types";
 // fa=floatAmp  fs=floatSpeed  sa=swayAmp
 // pc=particleCount  ps=particleSpeed
 // em=emissiveIntensity  kl=keyLight  rl=rimLight
-// Minimum animation baselines — even UNRANKED breathes and sways
-const FA_MIN = 0.035; // float amplitude minimum
-const SA_MIN = 0.02;  // sway amplitude minimum
-const FS_MIN = 0.6;   // float speed minimum
+// Minimum animation baselines — always visible even at UNRANKED
+const FA_MIN = 0.07;   // float amplitude minimum (visible breathing)
+const SA_MIN = 0.42;   // scan amplitude minimum (~24° head turn — clearly visible)
+const FS_MIN = 0.55;   // float speed minimum
 
+// la = lookAngle (scan L/R), ls = lookSpeed, fa = floatAmp, fs = floatSpeed
+// pc = particleCount, ps = particleSpeed, em = emissive, kl = keyLight, rl = rimLight
 const R = [
-  { fa: 0.04,  fs: 0.7,  sa: 0.022, pc: 6,   ps: 0.35, em: 0.03, kl: 2.2, rl: 1.2 }, // 0 UNRANKED
-  { fa: 0.05,  fs: 0.82, sa: 0.028, pc: 14,  ps: 0.5,  em: 0.06, kl: 2.8, rl: 1.5 }, // 1 E
-  { fa: 0.065, fs: 0.95, sa: 0.036, pc: 26,  ps: 0.75, em: 0.12, kl: 3.4, rl: 1.9 }, // 2 D
-  { fa: 0.085, fs: 1.05, sa: 0.046, pc: 42,  ps: 1.05, em: 0.19, kl: 4.0, rl: 2.4 }, // 3 C
-  { fa: 0.11,  fs: 1.18, sa: 0.058, pc: 62,  ps: 1.5,  em: 0.27, kl: 5.0, rl: 3.0 }, // 4 B
-  { fa: 0.14,  fs: 1.32, sa: 0.072, pc: 90,  ps: 2.0,  em: 0.36, kl: 6.0, rl: 4.0 }, // 5 A
-  { fa: 0.18,  fs: 1.55, sa: 0.09,  pc: 135, ps: 2.8,  em: 0.50, kl: 8.0, rl: 5.5 }, // 6 S
-  { fa: 0.24,  fs: 1.9,  sa: 0.12,  pc: 210, ps: 4.0,  em: 0.70, kl: 11.0,rl: 8.0 }, // 7 SS
+  { la: 0.42, ls: 0.18, fa: 0.08, fs: 0.55, pc: 6,   ps: 0.35, em: 0.03, kl: 2.2, rl: 1.2 }, // 0 UNRANKED
+  { la: 0.46, ls: 0.20, fa: 0.09, fs: 0.62, pc: 14,  ps: 0.5,  em: 0.06, kl: 2.8, rl: 1.5 }, // 1 E
+  { la: 0.50, ls: 0.23, fa: 0.10, fs: 0.70, pc: 26,  ps: 0.75, em: 0.12, kl: 3.4, rl: 1.9 }, // 2 D
+  { la: 0.54, ls: 0.26, fa: 0.12, fs: 0.78, pc: 42,  ps: 1.05, em: 0.19, kl: 4.0, rl: 2.4 }, // 3 C
+  { la: 0.58, ls: 0.29, fa: 0.14, fs: 0.88, pc: 62,  ps: 1.5,  em: 0.27, kl: 5.0, rl: 3.0 }, // 4 B
+  { la: 0.62, ls: 0.32, fa: 0.17, fs: 0.98, pc: 90,  ps: 2.0,  em: 0.36, kl: 6.0, rl: 4.0 }, // 5 A
+  { la: 0.68, ls: 0.37, fa: 0.21, fs: 1.15, pc: 135, ps: 2.8,  em: 0.50, kl: 8.0, rl: 5.5 }, // 6 S
+  { la: 0.75, ls: 0.44, fa: 0.27, fs: 1.40, pc: 210, ps: 4.0,  em: 0.70, kl: 11.0,rl: 8.0 }, // 7 SS
 ] as const;
 
 // ── RISING MANA PARTICLES ─────────────────────────────────────
@@ -228,8 +231,10 @@ interface SceneProps {
 
 function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   const { scene: rawScene, animations } = useGLTF("/hunter.glb");
-  // Clone so we never mutate the shared drei GLTF cache
-  const scene = useMemo(() => rawScene.clone(true), [rawScene]);
+
+  // SkeletonUtils.clone (not scene.clone) properly remaps skinned-mesh
+  // bone references so useAnimations can drive individual bones on the clone.
+  const scene = useMemo(() => SkeletonUtils.clone(rawScene), [rawScene]);
   const groupRef = useRef<THREE.Group>(null);
   const [modelH, setModelH] = useState(1);
   const [fitted, setFitted] = useState(false);
@@ -237,21 +242,23 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   const cfg = R[Math.min(rankIndex, R.length - 1)];
   const effectColor = penalty ? "#ef4444" : rankColor;
 
-  // ── Play any built-in GLB animation clips (idle walk etc.) ──
-  const { actions } = useAnimations(animations, groupRef);
+  // ── Bind animations to the SCENE (not group) so bone tracks resolve correctly ──
+  // Passing the scene object directly means AnimationMixer targets the cloned bones.
+  const { actions, names } = useAnimations(animations, scene);
+
   useEffect(() => {
-    const keys = Object.keys(actions);
-    if (keys.length === 0) return;
-    // Prefer idle/stand clips; fall back to first available
+    if (names.length === 0) return;
+    // Try idle/stand clips first, then fall back to whichever clip exists
     const name =
-      keys.find((k) => /idle|stand|wait|breath|neutral/i.test(k)) ?? keys[0];
+      names.find((n) => /idle|stand|wait|breath|neutral|t-?pose/i.test(n))
+      ?? names[0];
     const action = actions[name];
     if (!action) return;
-    action.reset().fadeIn(0.4).play();
-    // Scale playback speed with rank — feels more energetic at higher tiers
-    action.timeScale = 0.65 + rankIndex * 0.08;
+    action.reset().fadeIn(0.5).play();
+    // Higher ranks play faster — feels more energetic
+    action.timeScale = 0.6 + rankIndex * 0.08;
     return () => { action.fadeOut(0.4); };
-  }, [actions, rankIndex]);
+  }, [actions, names, rankIndex]);
 
   // ── Auto-fit: scale + center (rotation handled by useFrame) ──
   useEffect(() => {
@@ -288,41 +295,36 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
     });
   }, [fitted, scene, effectColor, condition, penalty, cfg.em]);
 
-  // ── LAYERED PROCEDURAL IDLE — 5-axis organic motion ──
-  // Multiple irrational-ratio sine waves so the pattern never exactly repeats.
-  // Result: breathing, weight-shifting, spine-twisting — feels genuinely alive.
+  // ── SECONDARY GROUP MOTION — overlaid on top of bone animation ──
+  // If the GLB has bone clips they drive the character;
+  // the group adds a gentle environmental float + slow world-space scan.
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
     const g = groupRef.current;
 
+    const la = Math.max(cfg.la, SA_MIN);
+    const ls = cfg.ls;
     const fa = Math.max(cfg.fa, FA_MIN);
     const fs = Math.max(cfg.fs, FS_MIN);
-    const sa = Math.max(cfg.sa, SA_MIN);
 
-    // Y — layered breathing float (3 frequencies = organic, non-mechanical)
-    const breath  = Math.sin(t * fs * 0.83) * fa;          // slow lung fill
-    const bounce  = Math.sin(t * fs * 1.97) * fa * 0.22;   // weight energy
-    const micro   = Math.sin(t * fs * 3.41) * fa * 0.07;   // heartbeat shimmer
-    g.position.y  = breath + bounce + micro;
+    // Slow environmental float (gravity/mana levitation)
+    const breathMain = Math.sin(t * fs * 0.9) * fa;
+    const breathHold = Math.sin(t * fs * 2.1) * fa * 0.18;
+    g.position.y = breathMain + breathHold;
 
-    // Y-rotation — dual sway so head traces a lazy figure-8, stays facing forward
-    const sway1   = Math.sin(t * 0.38) * sa;
-    const sway2   = Math.sin(t * 0.73 + 0.6) * sa * 0.32;
-    g.rotation.y  = Math.PI + sway1 + sway2;
+    // Head scan — character surveys the room
+    const rawScan = Math.sin(t * ls);
+    const scan = Math.sign(rawScan) * Math.pow(Math.abs(rawScan), 0.6) * la;
+    g.rotation.y = Math.PI + scan;
 
-    // X-translation — weight shift left/right (phase offset from sway)
-    g.position.x  = Math.sin(t * 0.38 + 0.55) * 0.055;
+    // Weight shift follows the scan direction
+    g.position.x = scan * 0.08;
+    g.rotation.z = -scan * 0.04;
+    g.rotation.x = Math.sin(t * 0.51) * 0.018;
 
-    // X-rotation — forward/back lean (chest breathing depth)
-    g.rotation.x  = Math.sin(t * 0.53) * 0.024;
-
-    // Z-rotation — subtle spine micro-roll (natural body asymmetry)
-    g.rotation.z  = Math.sin(t * 0.44 + 1.2) * 0.016;
-
-    // SS: dreamy slow elevation float
     if (rankIndex >= 7) {
-      g.position.y += 0.16 + Math.sin(t * 0.47) * 0.07;
+      g.position.y += 0.18 + Math.sin(t * 0.45) * 0.08;
     }
   });
 

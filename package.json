@@ -7,7 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue",
+    "dev:clean": "Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; next dev",
+    "build:clean": "Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; next build"
   },
   "dependencies": {
     "@react-three/drei": "^9.115.0",
