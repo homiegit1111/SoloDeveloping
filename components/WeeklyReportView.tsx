@@ -36,10 +36,11 @@ export default function WeeklyReportView() {
     try {
       const passages = retrieveAll(activeChunks(state), diagnose(state));
       const domainChunks = domainChunksOf(passages);
+      const { bookChunks: _omit, ...stateForServer } = state;
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state, domainChunks }),
+        body: JSON.stringify({ state: stateForServer, domainChunks }),
       });
       const data = await res.json();
       if (data.report) {

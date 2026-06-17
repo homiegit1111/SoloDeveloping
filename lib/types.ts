@@ -66,6 +66,8 @@ export interface AppState {
     soundEnabled: boolean;
     remindersEnabled?: boolean; // browser notification opt-in
     reminderHour?: number; // 0-23, when to nudge (default 20)
+    habitLabels?: Partial<Record<HabitId, string>>; // user-renamed quest labels
+    use3dModel?: boolean; // use GLB 3D model instead of canvas hunter
   };
 }
 
@@ -112,7 +114,12 @@ export interface PlanSource {
   page?: number;
 }
 
-export type PlanSection = "gym" | "maths" | "skincare" | "communication" | "mindset";
+export type PlanSection =
+  | "gym"
+  | "maths"
+  | "skincare"
+  | "communication"
+  | "mindset";
 
 export interface DailyPlan {
   date: string;
@@ -130,7 +137,12 @@ export interface DailyPlan {
   bookCitations?: { book: string; page: number }[];
   // ---- Intelligence layer (books are the only source of truth) ----
   diagnosis?: { phase: string; summary: string; archetype?: string };
-  bossTask?: { title: string; detail: string; trigger: string; source?: PlanSource } | null;
+  bossTask?: {
+    title: string;
+    detail: string;
+    trigger: string;
+    source?: PlanSource;
+  } | null;
   sources?: Partial<Record<PlanSection, PlanSource>>;
   usedChunkIds?: string[]; // chunk ids drawn today (STEP 6 never-repeat tracking)
   teachings?: string[]; // mentor keys used today (no same teaching 2 days running)

@@ -1,9 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { Rank } from "@/lib/types";
 import { rankProgress, nextRank } from "@/lib/ranks";
 import HunterCanvas from "./HunterCanvas";
+import { useApp } from "@/lib/context";
+
+const HunterModel3D = dynamic(() => import("./HunterModel3D"), { ssr: false });
 
 // ============================================================
 // HUNTER STAGE — the HQ centerpiece. The Hunter fills the whole
@@ -25,6 +29,9 @@ export default function HunterStage({
   condition?: number;
   penalty?: boolean;
 }) {
+  const { state, update } = useApp();
+  const use3d = !!(state.settings as any).use3dModel;
+
   const progress = rankProgress(totalXP);
   const nxt = nextRank(totalXP);
   const cond = Math.max(0, Math.min(1, condition));
@@ -32,20 +39,44 @@ export default function HunterStage({
   const vit = penalty
     ? { label: "SHACKLED", color: "#ef4444" }
     : cond >= 0.7
-    ? { label: "BLAZING", color: rank.color }
-    : cond >= 0.45
-    ? { label: "STEADY", color: rank.color }
-    : cond >= 0.25
-    ? { label: "FADING", color: "#C9A84C" }
-    : { label: "WEAKENED", color: "#ef4444" };
+      ? { label: "BLAZING", color: rank.color }
+      : cond >= 0.45
+        ? { label: "STEADY", color: rank.color }
+        : cond >= 0.25
+          ? { label: "FADING", color: "#C9A84C" }
+          : { label: "WEAKENED", color: "#ef4444" };
 
   return (
-    <div className="sys-window sys-corner relative overflow-hidden h-[54vh] min-h-[416px] lg:h-[72vh] lg:min-h-[560px]">
+    <div className="sys-window sys-corner relative overflow-hidden h-[50vh] min-h-[300px] lg:h-[72vh] lg:min-h-[560px]">
       <div className="scanline" />
 
       {/* full-bleed living Hunter — fills the entire stage */}
       <div className="absolute inset-0 z-0">
-        <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
+        {use3d ? (
+          <HunterModel3D rank={rank} condition={cond} penalty={penalty} />
+        ) : (
+          <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
+        )}
+      </div>
+
+      {/* 2D / 3D toggle — top-right corner */}
+      <div className="absolute top-3 right-12 z-20">
+        <button
+          onClick={() =>
+            update({
+              settings: { ...(state.settings as any), use3dModel: !use3d },
+            })
+          }
+          className="term text-[9px] px-2 py-1 border opacity-40 hover:opacity-100 active:opacity-100 transition-opacity"
+          style={{ borderColor: "var(--line-strong)", color: "var(--rank)" }}
+          title={
+            use3d
+              ? "Switch to 2D canvas"
+              : "Switch to 3D model (place hunter.glb in /public)"
+          }
+        >
+          {use3d ? "2D" : "3D"}
+        </button>
       </div>
 
       {/* top HUD — rank assessment + power */}
@@ -54,7 +85,10 @@ export default function HunterStage({
           <div className="flex items-center gap-2">
             <p className="label">HUNTER</p>
             {name ? (
-              <p className="term text-[11px] truncate max-w-[150px]" style={{ color: rank.color }}>
+              <p
+                className="term text-[11px] truncate max-w-[150px]"
+                style={{ color: rank.color }}
+              >
                 {name}
               </p>
             ) : null}
@@ -97,7 +131,10 @@ export default function HunterStage({
         <div className="h-1.5 bg-[rgba(255,255,255,0.06)] overflow-hidden">
           <motion.div
             className="h-full"
-            style={{ background: vit.color, boxShadow: `0 0 12px ${vit.color}` }}
+            style={{
+              background: vit.color,
+              boxShadow: `0 0 12px ${vit.color}`,
+            }}
             initial={{ width: 0 }}
             animate={{ width: `${Math.round(cond * 100)}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}

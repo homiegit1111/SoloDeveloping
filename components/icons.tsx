@@ -6,7 +6,12 @@ type P = { size?: number; className?: string; style?: CSSProperties };
 
 // Crisp, minimal line icons. Stroke-based, inherit currentColor.
 // No emoji anywhere — this is the System, not a toy.
-function S({ size = 22, className, style, children }: P & { children: React.ReactNode }) {
+function S({
+  size = 22,
+  className,
+  style,
+  children,
+}: P & { children: React.ReactNode }) {
   return (
     <svg
       width={size}
@@ -203,6 +208,13 @@ export const IconComms = (p: P) => (
   <S {...p}>
     <path d="M4 5h16v10H9l-4 4v-4H4V5Z" />
     <path d="M8 9h8M8 12h5" />
+  </S>
+);
+
+export const IconEdit = (p: P) => (
+  <S {...p}>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </S>
 );
 

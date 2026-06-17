@@ -26,7 +26,7 @@ export const HABITS: HabitDef[] = [
   },
   {
     id: "discipline",
-    label: "Discipline (No Fap)",
+    label: "Discipline",
     short: "Discipline",
     icon: "🛡️",
     xp: 30,
@@ -53,7 +53,7 @@ export const HABITS: HabitDef[] = [
   },
   {
     id: "build",
-    label: "Build (Code/App)",
+    label: "Build",
     short: "Build",
     icon: "⚒️",
     xp: 25,
@@ -76,7 +76,7 @@ export const HABIT_BY_ID: Record<HabitId, HabitDef> = HABITS.reduce(
     acc[h.id] = h;
     return acc;
   },
-  {} as Record<HabitId, HabitDef>
+  {} as Record<HabitId, HabitDef>,
 );
 
 export const STAT_LABELS: Record<StatKey, { name: string; icon: string }> = {
