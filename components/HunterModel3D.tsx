@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 import { Rank } from "@/lib/types";
 
@@ -227,9 +227,8 @@ interface SceneProps {
 }
 
 function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
-  const { scene: rawScene } = useGLTF("/hunter.glb");
-  // Clone the scene so we never mutate the shared drei GLTF cache.
-  // Without this, scale/position set on the shared object accumulates on every mount.
+  const { scene: rawScene, animations } = useGLTF("/hunter.glb");
+  // Clone so we never mutate the shared drei GLTF cache
   const scene = useMemo(() => rawScene.clone(true), [rawScene]);
   const groupRef = useRef<THREE.Group>(null);
   const [modelH, setModelH] = useState(1);
@@ -238,29 +237,38 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   const cfg = R[Math.min(rankIndex, R.length - 1)];
   const effectColor = penalty ? "#ef4444" : rankColor;
 
-  // ── Auto-fit: scale + face camera ──
+  // ── Play any built-in GLB animation clips (idle walk etc.) ──
+  const { actions } = useAnimations(animations, groupRef);
   useEffect(() => {
-    // Measure bounding box of our clone (raw orientation from export)
+    const keys = Object.keys(actions);
+    if (keys.length === 0) return;
+    // Prefer idle/stand clips; fall back to first available
+    const name =
+      keys.find((k) => /idle|stand|wait|breath|neutral/i.test(k)) ?? keys[0];
+    const action = actions[name];
+    if (!action) return;
+    action.reset().fadeIn(0.4).play();
+    // Scale playback speed with rank — feels more energetic at higher tiers
+    action.timeScale = 0.65 + rankIndex * 0.08;
+    return () => { action.fadeOut(0.4); };
+  }, [actions, rankIndex]);
+
+  // ── Auto-fit: scale + center (rotation handled by useFrame) ──
+  useEffect(() => {
     const box = new THREE.Box3().setFromObject(scene);
     const size = box.getSize(new THREE.Vector3());
-
-    // Scale so the model is 3.2 units tall (fills stage at fov=50, d=4.2)
     const TARGET = 3.2;
     const s = TARGET / Math.max(size.y, 0.001);
     scene.scale.set(s, s, s);
-
-    // Re-center at world origin
     const box2 = new THREE.Box3().setFromObject(scene);
     const ctr2 = box2.getCenter(new THREE.Vector3());
     scene.position.set(-ctr2.x, -ctr2.y, -ctr2.z);
-    // NOTE: do NOT set rotation here — useFrame owns all rotation via the group
-    // (scene.rotation + group.rotation would stack and cancel each other out)
-
+    // Do NOT set scene.rotation here — useFrame owns the group rotation
     setModelH(TARGET);
     setFitted(true);
   }, [scene]);
 
-  // ── Apply rank-coloured emissive tint to all materials ──
+  // ── Apply rank-coloured emissive tint ──
   useEffect(() => {
     if (!fitted) return;
     const color = new THREE.Color(effectColor);
@@ -280,20 +288,41 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
     });
   }, [fitted, scene, effectColor, condition, penalty, cfg.em]);
 
-  // ── Rank-driven idle animation ──
+  // ── LAYERED PROCEDURAL IDLE — 5-axis organic motion ──
+  // Multiple irrational-ratio sine waves so the pattern never exactly repeats.
+  // Result: breathing, weight-shifting, spine-twisting — feels genuinely alive.
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
-    // Breathing float — always at least FA_MIN so it never looks frozen
+    const g = groupRef.current;
+
     const fa = Math.max(cfg.fa, FA_MIN);
     const fs = Math.max(cfg.fs, FS_MIN);
     const sa = Math.max(cfg.sa, SA_MIN);
-    groupRef.current.position.y = Math.sin(t * fs) * fa;
-    // Gentle facing sway — orbits around Math.PI so face stays forward
-    groupRef.current.rotation.y = Math.PI + Math.sin(t * 0.32) * sa;
-    // SS floats upward
+
+    // Y — layered breathing float (3 frequencies = organic, non-mechanical)
+    const breath  = Math.sin(t * fs * 0.83) * fa;          // slow lung fill
+    const bounce  = Math.sin(t * fs * 1.97) * fa * 0.22;   // weight energy
+    const micro   = Math.sin(t * fs * 3.41) * fa * 0.07;   // heartbeat shimmer
+    g.position.y  = breath + bounce + micro;
+
+    // Y-rotation — dual sway so head traces a lazy figure-8, stays facing forward
+    const sway1   = Math.sin(t * 0.38) * sa;
+    const sway2   = Math.sin(t * 0.73 + 0.6) * sa * 0.32;
+    g.rotation.y  = Math.PI + sway1 + sway2;
+
+    // X-translation — weight shift left/right (phase offset from sway)
+    g.position.x  = Math.sin(t * 0.38 + 0.55) * 0.055;
+
+    // X-rotation — forward/back lean (chest breathing depth)
+    g.rotation.x  = Math.sin(t * 0.53) * 0.024;
+
+    // Z-rotation — subtle spine micro-roll (natural body asymmetry)
+    g.rotation.z  = Math.sin(t * 0.44 + 1.2) * 0.016;
+
+    // SS: dreamy slow elevation float
     if (rankIndex >= 7) {
-      groupRef.current.position.y += 0.14 + Math.sin(t * 0.5) * 0.06;
+      g.position.y += 0.16 + Math.sin(t * 0.47) * 0.07;
     }
   });
 
