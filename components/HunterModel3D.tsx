@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, useAnimations } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 import { Rank } from "@/lib/types";
@@ -230,10 +230,10 @@ interface SceneProps {
 }
 
 function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
-  const { scene: rawScene, animations } = useGLTF("/hunter.glb");
+  const { scene: rawScene } = useGLTF("/hunter.glb");
 
   // SkeletonUtils.clone (not scene.clone) properly remaps skinned-mesh
-  // bone references so useAnimations can drive individual bones on the clone.
+  // bone references so the clone renders independently.
   const scene = useMemo(() => SkeletonUtils.clone(rawScene), [rawScene]);
   const groupRef = useRef<THREE.Group>(null);
   const [modelH, setModelH] = useState(1);
@@ -242,38 +242,51 @@ function HunterScene({ rankColor, rankIndex, condition, penalty }: SceneProps) {
   const cfg = R[Math.min(rankIndex, R.length - 1)];
   const effectColor = penalty ? "#ef4444" : rankColor;
 
-  // ── Bind animations to the SCENE (not group) so bone tracks resolve correctly ──
-  // Passing the scene object directly means AnimationMixer targets the cloned bones.
-  const { actions, names } = useAnimations(animations, scene);
+  // ── STRIP THE SKETCHFAB PEDESTAL ──────────────────────────────
+  // The source GLB ships with a baked-in brick floor/pedestal
+  // (pPlane1 → Bricks_mat / Sides_mat). It is huge relative to the
+  // character, so it dominates the auto-fit bounding box and shoves
+  // Jin-Woo off-centre and tiny. Remove that environment geometry so
+  // only the Hunter himself is measured, scaled and shown.
+  const charRoot = useMemo(() => {
+    const junk: THREE.Object3D[] = [];
+    scene.traverse((o) => {
+      const n = (o.name || "").toLowerCase();
+      const mesh = o as THREE.Mesh;
+      const matName = mesh.isMesh
+        ? (Array.isArray(mesh.material)
+            ? mesh.material.map((m) => m?.name || "").join(" ")
+            : (mesh.material as THREE.Material)?.name || "")
+            .toLowerCase()
+        : "";
+      // pedestal = the plane nodes or the brick/sides materials
+      if (
+        /pplane|bricks?_mat|sides?_mat|\bfloor\b|ground|pedestal/.test(
+          n + " " + matName,
+        )
+      ) {
+        junk.push(o);
+      }
+    });
+    junk.forEach((o) => o.parent?.remove(o));
+    return scene;
+  }, [scene]);
 
+  // ── Auto-fit: scale + center on the CHARACTER only ──
   useEffect(() => {
-    if (names.length === 0) return;
-    // Try idle/stand clips first, then fall back to whichever clip exists
-    const name =
-      names.find((n) => /idle|stand|wait|breath|neutral|t-?pose/i.test(n))
-      ?? names[0];
-    const action = actions[name];
-    if (!action) return;
-    action.reset().fadeIn(0.5).play();
-    // Higher ranks play faster — feels more energetic
-    action.timeScale = 0.6 + rankIndex * 0.08;
-    return () => { action.fadeOut(0.4); };
-  }, [actions, names, rankIndex]);
-
-  // ── Auto-fit: scale + center (rotation handled by useFrame) ──
-  useEffect(() => {
-    const box = new THREE.Box3().setFromObject(scene);
+    // Measure the character (pedestal already stripped above).
+    const box = new THREE.Box3().setFromObject(charRoot);
     const size = box.getSize(new THREE.Vector3());
     const TARGET = 3.2;
     const s = TARGET / Math.max(size.y, 0.001);
-    scene.scale.set(s, s, s);
-    const box2 = new THREE.Box3().setFromObject(scene);
+    charRoot.scale.set(s, s, s);
+    const box2 = new THREE.Box3().setFromObject(charRoot);
     const ctr2 = box2.getCenter(new THREE.Vector3());
-    scene.position.set(-ctr2.x, -ctr2.y, -ctr2.z);
-    // Do NOT set scene.rotation here — useFrame owns the group rotation
+    charRoot.position.set(-ctr2.x, -ctr2.y, -ctr2.z);
+    // Do NOT set rotation here — useFrame owns the group rotation
     setModelH(TARGET);
     setFitted(true);
-  }, [scene]);
+  }, [charRoot]);
 
   // ── Apply rank-coloured emissive tint ──
   useEffect(() => {
