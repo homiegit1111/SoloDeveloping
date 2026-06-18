@@ -122,19 +122,6 @@
       "chunkCount": 438,
       "file": "muscle-strength-pyramid.json",
       "preloaded": true
-    },
-    {
-      "slug": "ssc-cgl-quant",
-      "title": "Quantitative Aptitude for SSC CGL",
-      "author": "SSC CGL Quant Reference",
-      "categories": [
-        "maths",
-        "study"
-      ],
-      "pages": 26,
-      "chunkCount": 26,
-      "file": "ssc-cgl-quant.json",
-      "preloaded": true
     }
   ]
 }

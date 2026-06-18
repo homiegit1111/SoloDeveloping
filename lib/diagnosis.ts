@@ -172,7 +172,6 @@ export function diagnose(state: AppState): Diagnosis {
     completion7 < 40 ? "isolating" : completion7 > 75 ? "expanding" : "steady";
   if (social === "isolating") mentors.add("glover");
   mentors.add("aristotle"); // study mindset always present
-  mentors.add("ssc");
   mentors.add("vargas");
 
   // ---- memory for never-repeat (STEP 6) ----

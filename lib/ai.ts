@@ -39,35 +39,53 @@ export async function callAI(system: string, user: string, maxTokens = 2000): Pr
   return { ok: false, text: "", provider, error: "Unknown provider." };
 }
 
+// Best Groq models in preference order (June 2026 — verified from console.groq.com/docs/models).
+// Tried in sequence; falls through on 404 (model not on your plan/retired).
+const GROQ_MODELS = [
+  "openai/gpt-oss-120b",                        // best intelligence, 131k ctx — ideal for coaching plans
+  "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout — agentic, fast
+  "llama-3.3-70b-versatile",                    // reliable workhorse fallback
+  "llama-3.1-70b-versatile",                    // older fallback
+];
+
 async function callGroq(system: string, user: string, maxTokens: number): Promise<AIResult> {
-  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      temperature: 0.85,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  return { ok: true, text: data.choices?.[0]?.message?.content ?? "", provider: "groq" };
+  const override = (process.env.GROQ_MODEL || "").trim();
+  const candidates = override ? [override, ...GROQ_MODELS] : GROQ_MODELS;
+
+  let lastErr = "";
+  for (const model of candidates) {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature: 0.85,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, text: data.choices?.[0]?.message?.content ?? "", provider: "groq" };
+    }
+    const errText = await res.text();
+    lastErr = `Groq ${res.status} (${model}): ${errText}`;
+    // Only try the next model for 404 (unknown model) — other errors are real failures
+    if (res.status !== 404) throw new Error(lastErr);
+  }
+  throw new Error(lastErr || "Groq: no usable model found.");
 }
 
 // Current Gemini models (v1beta generateContent). Tried in order; if one 404s
-// (retired/renamed model, e.g. the old gemini-1.5-flash), we fall through to the next.
+// (retired/renamed model), we fall through to the next.
 const GEMINI_MODELS = [
-  "gemini-2.5-flash",
   "gemini-2.0-flash",
-  "gemini-flash-latest",
   "gemini-2.0-flash-001",
   "gemini-1.5-flash",
 ];

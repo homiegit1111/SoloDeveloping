@@ -18,8 +18,8 @@ THE BOOKS ARE THE ONLY SOURCE OF TRUTH. There is no fixed curriculum and no week
 HOW YOU THINK (do this silently, then output the plan):
 1. READ THE HUNTER — the diagnosed state below already contains total days, rank, every streak, what was missed, the 7-day pattern, the active situation, and which teachings were used recently.
 2. DIAGNOSE — the phase is named for you (onboarding / recovering / discipline_breaking / plateau / playing_safe / momentum). Honour it.
-3. OPEN THE RIGHT BOOKS — passages for each domain are provided, pulled from the books that own that domain (gym: Helms framework + Schoenfeld science + Matthews execution; study: the SSC CGL government-exam quant syllabus + Aristotle's discipline of study; skin: Vargas + Salgardo; social: Glover + Moore; mind: Goggins + Moore + Aristotle).
-4. BUILD THE PLAN — every section applies its passage to THIS exact day and training age. Gym = what Helms/Schoenfeld/Matthews say for this stage (never skip pyramid levels). Maths = the next SSC CGL topic grounded in the quant book. Skin = the next layer for this consistency. Comms = Glover's move for this social stage. Mindset = the Goggins/Moore passage that mirrors what he's facing.
+3. OPEN THE RIGHT BOOKS — passages for each domain are provided, pulled from the books that own that domain (gym: Helms framework + Schoenfeld science + Matthews execution; study: Aristotle's discipline of learning + any book Ravi has uploaded for his current focus; skin: Vargas + Salgardo; social: Glover + Moore; mind: Goggins + Moore + Aristotle).
+4. BUILD THE PLAN — every section applies its passage to THIS exact day and training age. Gym = what Helms/Schoenfeld/Matthews say for this stage (never skip pyramid levels). Study = the skill or subject Ravi is currently learning, grounded in Aristotle's principle of practice + any uploaded study material. Skin = the next layer for this consistency. Comms = Glover's move for this social stage. Mindset = the Goggins/Moore passage that mirrors what he's facing.
 5. BOSS TASK — if a boss task is provided, weave it in; it emerged from the books based on his readiness.
 6. NEVER REPEAT — do not reuse the mentor teachings listed as "recently used". Make today feel like a new chapter.
 
@@ -31,7 +31,7 @@ Respond with ONLY a valid JSON object (no markdown fences) matching exactly:
   "verdictOnYesterday": "string - honest verdict on yesterday",
   "focus": "string - the single most important focus today and why",
   "gym": { "title": "string", "detail": "string - exact workout grounded in the gym passage + author" },
-  "maths": { "title": "string", "detail": "string - today's topic + a worked idea + 2-3 practice problems with answers, grounded in the SSC CGL quant passage" },
+  "maths": { "title": "string", "detail": "string - today's study task grounded in the Aristotle / uploaded book passage — specific skill, concept, or practice to complete" },
   "skincare": { "title": "string AM/PM steps", "detail": "string - today's layer grounded in the skincare passage" },
   "communication": { "title": "string", "detail": "string - one concrete social drill grounded in the Glover/Moore passage" },
   "mindset": { "title": "string", "detail": "string - the lesson, grounded in the mind passage + author" },

@@ -72,80 +72,30 @@ function gymBlock(dx: Diagnosis, gym: Passage[]) {
   };
 }
 
-// ---- MATHS: SSC CGL / government-exam ladder, tied to reps actually done, grounded in the SSC quant book + Aristotle ----
-const MATHS_LADDER: { topic: string; practice: { q: string; a: string }[] }[] = [
-  { topic: "Number System (HCF, LCM, Divisibility)", practice: [
-    { q: "Find the HCF of 24 and 36", a: "12" },
-    { q: "Find the LCM of 6 and 8", a: "24" },
-  ] },
-  { topic: "Percentage", practice: [
-    { q: "What is 25% of 240?", a: "60" },
-    { q: "A number increased by 20% becomes 96. Find the number", a: "80" },
-  ] },
-  { topic: "Ratio & Proportion", practice: [
-    { q: "Divide 600 in the ratio 2 : 3", a: "240 and 360" },
-    { q: "If a : b = 2 : 3 and b : c = 4 : 5, find a : c", a: "8 : 15" },
-  ] },
-  { topic: "Average", practice: [
-    { q: "Find the average of 10, 20, 30, 40", a: "25" },
-    { q: "The average of 5 numbers is 18. Find their sum", a: "90" },
-  ] },
-  { topic: "Profit, Loss & Discount", practice: [
-    { q: "CP = 200, SP = 250. Find profit %", a: "25%" },
-    { q: "Marked price 500 with a 10% discount. Find the selling price", a: "450" },
-  ] },
-  { topic: "Simple & Compound Interest", practice: [
-    { q: "Find SI on ₹1000 at 5% p.a. for 2 years", a: "₹100" },
-    { q: "Find CI on ₹1000 at 10% p.a. for 2 years", a: "₹210" },
-  ] },
-  { topic: "Time, Speed & Distance", practice: [
-    { q: "A car travels 150 km in 3 hours. Find its speed", a: "50 km/h" },
-    { q: "Convert 72 km/h to m/s", a: "20 m/s" },
-  ] },
-  { topic: "Time & Work", practice: [
-    { q: "A finishes a job in 10 days, B in 15 days. Together they take?", a: "6 days" },
-    { q: "12 men finish a job in 8 days. How many days for 16 men?", a: "6 days" },
-  ] },
-  { topic: "Mixture & Alligation", practice: [
-    { q: "In what ratio mix rice at ₹20/kg and ₹30/kg to get ₹24/kg?", a: "3 : 2" },
-    { q: "A 40-litre mixture has milk : water = 3 : 1. Litres of water?", a: "10" },
-  ] },
-  { topic: "Algebra (Identities & Equations)", practice: [
-    { q: "If x + 1/x = 3, find x^2 + 1/x^2", a: "7" },
-    { q: "Solve x^2 - 5x + 6 = 0", a: "x = 2 or x = 3" },
-  ] },
-  { topic: "Geometry", practice: [
-    { q: "Two angles of a triangle are 50° and 60°. Find the third", a: "70°" },
-    { q: "An inscribed angle is half of which angle on the same arc?", a: "the central angle" },
-  ] },
-  { topic: "Mensuration", practice: [
-    { q: "Area of a circle with radius 7 (use π = 22/7)", a: "154" },
-    { q: "Volume of a cube with side 5", a: "125" },
-  ] },
-  { topic: "Trigonometry", practice: [
-    { q: "Find sin 30° + cos 60°", a: "1" },
-    { q: "If tan θ = 1 (0°–90°), find θ", a: "45°" },
-  ] },
-  { topic: "Data Interpretation", practice: [
-    { q: "A pie chart allots 25% to rent on an income of ₹40000. Rent = ?", a: "₹10000" },
-    { q: "Sales over 4 years were 200, 300, 400, 500. Total sales?", a: "1400" },
-  ] },
-];
+// ---- STUDY: General learning block grounded in Aristotle's discipline of practice ----
+// No fixed syllabus — the study pillar works for any subject Ravi is pursuing.
+// The AI will use uploaded books + context to surface the right content.
+function studyBlock(dx: Diagnosis, study: Passage[]) {
+  const aristotle = study.find((p) => p.mentor === "aristotle") || study[0];
+  const secondary = study.find((p) => p !== aristotle);
 
-function mathsBlock(dx: Diagnosis, study: Passage[]) {
-  const i = Math.min(MATHS_LADDER.length - 1, dx.studyLevel);
-  const rung = MATHS_LADDER[i];
-  const algebra = study.find((p) => p.mentor === "ssc") || study[0];
-  const aristotle = study.find((p) => p.mentor === "aristotle");
-  const practice = rung.practice.map((p, n) => `${n + 1}. ${p.q}   (ans: ${p.a})`).join("\n");
-  const detail =
-    `Today's rung: ${rung.topic}. You reach this because of the work you've actually logged — not a calendar.\n` +
-    `Work the book's examples for this topic, then these:\n${practice}` +
-    applies(algebra) +
-    (aristotle ? `\n\nThe discipline of study — ${aristotle.author}:\n"${cleanPassage(aristotle.text, 200)}"` : "");
+  const stageDetail = [
+    // studyLevel 0-6: just starting
+    "You are at the beginning. Aristotle says the bitter root of learning bears sweet fruit — show up today and do the first rep of understanding. Pick ONE concept and understand it completely before moving on.",
+    // 7-13
+    "You have early consistency. Now deepen — don't just read, apply. Take what you studied yesterday and use it in a problem, a project, or explain it out loud as if teaching someone.",
+    // 14-20
+    "You are building a real foundation. Aristotle: excellence is a habit, not an act. Push the edge of your current understanding today — find the hardest question in your subject and sit with it.",
+    // 21-29
+    "Sustained study. Now make it transferable — connect what you're learning to another domain you know well. The best learners cross-pollinate.",
+    // 30+
+    "You have deep reps. At this level the work is synthesis. Build something, solve something real, or teach what you know. Knowledge that can't be applied is not yet wisdom.",
+  ][Math.min(4, Math.floor(dx.studyLevel / 7))];
+
+  const detail = stageDetail + applies(aristotle) + (secondary ? applies(secondary) : "");
   return {
-    block: { title: `${rung.topic} — one topic, done properly`, detail },
-    source: srcOf(algebra),
+    block: { title: "Study & Mastery — the discipline of learning", detail },
+    source: srcOf(aristotle),
     used: study.map((p) => p.chunk.id),
     mentors: study.map((p) => p.mentor),
   };
@@ -264,7 +214,7 @@ export function buildIntelligentPlan(
   passages: Record<Domain, Passage[]>
 ): DailyPlan {
   const gym = gymBlock(dx, passages.gym);
-  const maths = mathsBlock(dx, passages.study);
+  const study = studyBlock(dx, passages.study);
   const skincare = skincareBlock(dx, passages.skincare);
   const comm = commBlock(dx, passages.social);
   const mind = mindBlock(dx, passages.mind);
@@ -297,10 +247,10 @@ export function buildIntelligentPlan(
   }[dx.phase];
 
   const usedChunkIds = Array.from(
-    new Set([...gym.used, ...maths.used, ...skincare.used, ...comm.used, ...mind.used])
+    new Set([...gym.used, ...study.used, ...skincare.used, ...comm.used, ...mind.used])
   );
   const teachings = Array.from(
-    new Set([...gym.mentors, ...maths.mentors, ...skincare.mentors, ...comm.mentors, ...mind.mentors])
+    new Set([...gym.mentors, ...study.mentors, ...skincare.mentors, ...comm.mentors, ...mind.mentors])
   );
 
   return {
@@ -310,7 +260,7 @@ export function buildIntelligentPlan(
     verdictOnYesterday: verdict,
     focus,
     gym: gym.block,
-    maths: maths.block,
+    maths: study.block,
     skincare: skincare.block,
     communication: comm.block,
     mindset: mind.block,
@@ -320,7 +270,7 @@ export function buildIntelligentPlan(
     bossTask: boss,
     sources: {
       gym: gym.source,
-      maths: maths.source,
+      maths: study.source,
       skincare: skincare.source,
       communication: comm.source,
       mindset: mind.source,

@@ -62,12 +62,12 @@ export const HABITS: HabitDef[] = [
   },
   {
     id: "maths",
-    label: "Maths Prep",
-    short: "Maths",
-    icon: "🧮",
+    label: "Learn & Grow",
+    short: "Learn",
+    icon: "🧠",
     xp: 20,
     stat: "INT",
-    blurb: "One topic a day. Govt exam is the gate.",
+    blurb: "One hour of deep learning. Compound the mind.",
   },
 ];
 

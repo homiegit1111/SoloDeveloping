@@ -14,7 +14,6 @@ export type Mentor =
   | "moore"
   | "glover"
   | "aristotle"
-  | "ssc"
   | "vargas"
   | "salgardo";
 
@@ -86,14 +85,7 @@ export const BOOKS: Record<string, BookEntry> = {
     role: "The discipline of study: virtue built through daily practice, the golden mean, the bitter root and sweet fruit of learning.",
     domains: ["study", "mind"],
   },
-  "ssc-cgl-quant": {
-    slug: "ssc-cgl-quant",
-    title: "Quantitative Aptitude for SSC CGL",
-    author: "SSC CGL Quant Reference",
-    mentor: "ssc",
-    role: "The maths source of truth: the full SSC CGL / Indian government-exam quantitative syllabus — number system, percentages, ratio, profit & loss, interest, time-speed-distance, time & work, mixtures, algebra, geometry, mensuration, trigonometry and data interpretation, with formulas and worked examples.",
-    domains: ["study"],
-  },
+  // (study domain now uses only Aristotle + any book Ravi uploads)
   "glow-from-within": {
     slug: "glow-from-within",
     title: "Glow From Within",
@@ -117,8 +109,8 @@ export const BOOKS: Record<string, BookEntry> = {
 export const DOMAIN_BOOKS: Record<Domain, string[]> = {
   // Helms sets the framework, Schoenfeld the science, Matthews the execution.
   gym: ["muscle-strength-pyramid", "max-muscle-plan", "beyond-bigger-leaner-stronger"],
-  // SSC CGL government-exam maths first, Aristotle for the virtue of study.
-  study: ["ssc-cgl-quant", "complete-aristotle"],
+  // Aristotle on the virtue and discipline of study; Ravi can upload any book to extend this.
+  study: ["complete-aristotle"],
   // Vargas for glow, Salgardo for male-specific application.
   skincare: ["glow-from-within", "manmade"],
   // Glover for practical social application, Moore for the archetypal frame.
