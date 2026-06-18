@@ -7,13 +7,24 @@ import { rankForXP } from "./ranks";
 const KEY = "solo-developing-state-v1";
 export const STATE_VERSION = 1;
 
+// LOCAL calendar date (YYYY-MM-DD). The app is single-user and lives in the
+// user's timezone, so the day must roll at LOCAL midnight — never UTC midnight.
+// (Using UTC caused an off-by-one for any timezone ahead of/behind UTC: e.g. in
+// IST the day only flipped at 05:30 local, so early-morning quests logged to the
+// previous day.) All day math below is anchored on this same local convention.
 export function todayStr(d = new Date()): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function daysBetween(a: string, b: string): number {
-  const ms = new Date(b).getTime() - new Date(a).getTime();
-  return Math.round(ms / 86400000);
+  // Parse both as LOCAL midnight so the difference is whole calendar days,
+  // independent of timezone offset.
+  const da = new Date(a + "T00:00:00");
+  const db = new Date(b + "T00:00:00");
+  return Math.round((db.getTime() - da.getTime()) / 86400000);
 }
 
 export function dayNumber(state: AppState): number {
@@ -47,11 +58,11 @@ export function defaultState(name = "Ravi"): AppState {
 }
 
 export function addDays(dateStr: string, n: number): string {
-  // Operate in UTC to stay consistent with daysBetween() and todayStr(),
-  // which both anchor on UTC midnight — avoids timezone off-by-one bugs.
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
+  // Operate in LOCAL time to stay consistent with daysBetween() and todayStr(),
+  // which both anchor on local midnight — avoids timezone off-by-one bugs.
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return todayStr(d);
 }
 
 export function loadState(): AppState {
@@ -92,18 +103,23 @@ export function sanitizeState(parsed: Partial<AppState>): AppState {
   return merged;
 }
 
-export function saveState(state: AppState) {
-  if (typeof window === "undefined") return;
-  // Preloaded book chunks (Aristotle, Goggins, BBLS, etc.) can be several MB and
-  // are always re-fetchable from /books-data on load, so we never persist them —
-  // only uploaded books' chunks. This keeps us well under the ~5MB localStorage quota
-  // no matter how many preloaded books ship.
+// Strip preloaded book chunks from a state object. They can be several MB and
+// are always re-fetchable from /books-data on load, so they never need to be
+// persisted (localStorage) or synced (cloud) — only uploaded books' chunks do.
+// This keeps us well under the ~5MB localStorage quota and keeps cloud saves tiny
+// no matter how many preloaded books ship.
+export function slimState(state: AppState): AppState {
   const preloadedSlugs = new Set(state.books.filter((b) => b.preloaded).map((b) => b.slug));
   const slimChunks: Record<string, BookChunk[]> = {};
   for (const [slug, chunks] of Object.entries(state.bookChunks)) {
     if (!preloadedSlugs.has(slug)) slimChunks[slug] = chunks;
   }
-  const toSave: AppState = { ...state, bookChunks: slimChunks };
+  return { ...state, bookChunks: slimChunks };
+}
+
+export function saveState(state: AppState) {
+  if (typeof window === "undefined") return;
+  const toSave: AppState = slimState(state);
   try {
     localStorage.setItem(KEY, JSON.stringify(toSave));
   } catch (e) {

@@ -1,5 +1,5 @@
 import { AppState, BookChunk, DailyPlan, WeeklyReport } from "./types";
-import { dayNumber, completionRate } from "./store";
+import { dayNumber, completionRate, todayStr, addDays } from "./store";
 import { rankForXP, nextRank } from "./ranks";
 import { diagnose } from "./diagnosis";
 import { passagesFromDomainChunks } from "./retrieval";
@@ -35,7 +35,7 @@ export function buildLocalReport(state: AppState): WeeklyReport {
   const nxt = nextRank(state.totalXP);
 
   return {
-    weekStart: new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10),
+    weekStart: addDays(todayStr(), -6),
     weekNumber: week,
     generatedBy: "local",
     physical:
@@ -66,10 +66,9 @@ export function buildLocalReport(state: AppState): WeeklyReport {
 
 function sumLastDaysXP(state: AppState, days: number): number {
   let total = 0;
-  const today = new Date();
+  const today = todayStr();
   for (let i = 0; i < days; i++) {
-    const d = new Date(today.getTime() - i * 86400000).toISOString().slice(0, 10);
-    total += state.history[d]?.xpEarned || 0;
+    total += state.history[addDays(today, -i)]?.xpEarned || 0;
   }
   return total;
 }

@@ -114,8 +114,13 @@ export function legendForFocus(focus: string): LegendKey {
   const f = focus.toLowerCase();
   if (f.includes("gym") || f.includes("body") || f.includes("train") || f.includes("strength"))
     return "arnold";
-  if (f.includes("disciplin") || f.includes("urge") || f.includes("fap") || f.includes("control"))
-    return Math.random() > 0.5 ? "marcus" : "buddha";
+  if (f.includes("disciplin") || f.includes("urge") || f.includes("fap") || f.includes("control")) {
+    // Deterministic (not Math.random) so the same focus always maps to the same
+    // voice — keeps a given day's plan stable across re-renders/regenerations.
+    let h = 0;
+    for (let i = 0; i < f.length; i++) h = (h * 31 + f.charCodeAt(i)) >>> 0;
+    return h % 2 === 0 ? "marcus" : "buddha";
+  }
   if (f.includes("habit") || f.includes("streak") || f.includes("system")) return "clear";
   if (f.includes("pain") || f.includes("hard") || f.includes("tough") || f.includes("punish"))
     return "goggins";

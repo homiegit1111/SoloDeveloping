@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { rankForXP } from "@/lib/ranks";
-import { dayNumber, yesterdaySummary, overallCondition } from "@/lib/store";
+import { dayNumber, yesterdaySummary, overallCondition, todayStr } from "@/lib/store";
 import { LEGEND_LINES, LEGENDS, pick } from "@/lib/legends";
 import HunterStage from "@/components/HunterStage";
 import StatBars from "@/components/StatBars";
@@ -57,7 +57,7 @@ export default function Home() {
     if (!ready) return false;
     const y = yesterdaySummary(state);
     const hasHistory = Object.keys(state.history).length > 0;
-    const todayDone = state.history[new Date().toISOString().slice(0, 10)]?.completed.length || 0;
+    const todayDone = state.history[todayStr()]?.completed.length || 0;
     return hasHistory && y.completed < y.total && !isFrozen(state, y.date) && todayDone < 7;
   }, [state, ready]);
 
@@ -146,6 +146,7 @@ export default function Home() {
         if (confirm("Reset all progress? This wipes your save. (Export a backup first!)")) {
           localStorage.removeItem("solo-onboarded");
           reset();
+          setStarted(false); // so onboarding shows again immediately, not after a reload
         }
       }}
       className="label hover:text-[#ff7b7b] transition-colors"

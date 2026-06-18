@@ -52,8 +52,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const idx = await fetch("/books-data/index.json").then((r) => r.json());
         const metas: BookMeta[] = [];
         const chunks: Record<string, BookChunk[]> = {};
-        for (const b of idx.books) {
-          const data = await fetch(`/books-data/${b.file}`).then((r) => r.json());
+        // Fetch every book in PARALLEL — sequential awaits made cold start scale
+        // linearly with book count (10 books = 10 round-trips back-to-back).
+        const loaded = await Promise.all(
+          (idx.books as any[]).map(async (b) => {
+            try {
+              const data = await fetch(`/books-data/${b.file}`).then((r) => r.json());
+              return { b, chunks: (data.chunks as BookChunk[]) || [] };
+            } catch {
+              return { b, chunks: [] as BookChunk[] };
+            }
+          }),
+        );
+        if (cancelled) return;
+        for (const { b, chunks: ch } of loaded) {
           metas.push({
             slug: b.slug,
             title: b.title,
@@ -64,9 +76,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             preloaded: true,
             active: true,
           });
-          chunks[b.slug] = data.chunks;
+          chunks[b.slug] = ch;
         }
-        if (cancelled) return;
         setState((s) => {
           // Preserve the user's active/inactive choice for already-known books.
           const known = new Map(s.books.map((b) => [b.slug, b]));

@@ -1,5 +1,6 @@
 import { AppState } from "./types";
 import { getSupabase, SAVES_TABLE, supabaseConfigured } from "./supabase";
+import { slimState } from "./store";
 
 const HUNTER_KEY = "solo-hunter-id";
 const SYNCED_AT_KEY = "solo-synced-at";
@@ -48,7 +49,9 @@ export async function pushState(state: AppState): Promise<boolean> {
   if (!sb) return false;
   const id = getHunterId();
   const now = new Date().toISOString();
-  const { error } = await sb.from(SAVES_TABLE).upsert({ hunter_id: id, state, updated_at: now });
+  // Strip preloaded chunks — they re-hydrate from /books-data, so syncing them
+  // would bloat every cloud save by several MB for no benefit.
+  const { error } = await sb.from(SAVES_TABLE).upsert({ hunter_id: id, state: slimState(state), updated_at: now });
   if (error) return false;
   if (typeof window !== "undefined") localStorage.setItem(SYNCED_AT_KEY, now);
   return true;

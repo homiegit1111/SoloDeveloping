@@ -13,6 +13,7 @@ import { AppState, DailyPlan, PlanSource } from "./types";
 import { Diagnosis, Domain } from "./diagnosis";
 import { Passage } from "./retrieval";
 import { HABIT_BY_ID } from "./habits";
+import { todayStr } from "./store";
 
 function cleanPassage(text: string, max = 280): string {
   let t = text.replace(/\s+/g, " ").trim();
@@ -303,7 +304,7 @@ export function buildIntelligentPlan(
   );
 
   return {
-    date: new Date().toISOString().slice(0, 10),
+    date: todayStr(),
     generatedBy: "local",
     greeting,
     verdictOnYesterday: verdict,

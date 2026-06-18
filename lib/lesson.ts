@@ -1,5 +1,6 @@
 import { AppState, BookChunk } from "./types";
 import { authorFor, titleFor } from "./books";
+import { todayStr } from "./store";
 
 export interface Lesson {
   chunk: BookChunk;
@@ -15,7 +16,7 @@ export function lessonOfTheDay(state: AppState): Lesson | null {
     for (const c of chunks || []) all.push({ slug, chunk: c });
   }
   if (all.length === 0) return null;
-  const seed = dayHash(new Date().toISOString().slice(0, 10));
+  const seed = dayHash(todayStr());
   const pick = all[seed % all.length];
   return {
     chunk: pick.chunk,
