@@ -387,8 +387,7 @@ export default function HunterCanvas({ rank, condition, penalty = false, classNa
       const auraCol = isSS ? "#ffffff" : c;
       // weakened / dimmed look
       const weak = penalty || cond < 0.32 || tier <= 1;
-      // Jin-Woo's coat is always dark navy — rank energy shows in the rim glow, not the coat fabric
-      const bodyTint = penalty ? "#131624" : "#0d1533";
+      const bodyTint = penalty ? mix(c, "#3a3f4d", 0.7) : weak ? mix(c, "#3a3f4d", 0.45) : c;
       const t = frame / 60;
       const breathe = Math.sin(t * 1.5) * (weak ? 1.3 : 2.6);
       const bob = Math.sin(t * 1.1) * (weak ? 1.5 : tier >= 6 ? 5 : 3);
@@ -624,12 +623,11 @@ export default function HunterCanvas({ rank, condition, penalty = false, classNa
       drawCape(ctx!, cape, COLS, ROWS, idx, bodyTint, cond, penalty);
 
       // ===== BODY =====
-      // Dark navy coat gradient — rank color bleeds into the rim/edge highlight
       const bodyGrad = ctx!.createLinearGradient(0, 120, 0, 600);
-      bodyGrad.addColorStop(0, weak ? "#0c0e1a" : mix(bodyTint, "#1a2455", 0.35));
-      bodyGrad.addColorStop(0.45, "#090c1a");
-      bodyGrad.addColorStop(1, "#04050d");
-      const rim = rgba(weak ? "#2a3060" : c, penalty ? 0.3 : 0.5 + cond * 0.45);
+      bodyGrad.addColorStop(0, mix(bodyTint, "#0b0e18", weak ? 0.66 : 0.4));
+      bodyGrad.addColorStop(0.4, "#0a0d16");
+      bodyGrad.addColorStop(1, "#04060d");
+      const rim = rgba(weak ? mix(c, "#5b6275", 0.6) : c, penalty ? 0.4 : 0.55 + cond * 0.4);
 
       // legs
       limb(pose.hipL, pose.knL, 17, 12, bodyGrad, rim);
@@ -811,21 +809,13 @@ function drawTorso(
   ctx.closePath();
   ctx.fillStyle = rgba(c, weak ? 0.06 : 0.12 + cond * 0.16);
   ctx.fill();
-  // White shirt visible through open coat — Jin-Woo's signature casual look
+  // collar V
   ctx.beginPath();
-  ctx.moveTo(j.neck.x - 10, j.neck.y + 10);
-  ctx.lineTo(j.neck.x, j.neck.y + 44);
-  ctx.lineTo(j.neck.x + 10, j.neck.y + 10);
-  ctx.closePath();
-  ctx.fillStyle = rgba("#c8ccde", weak ? 0.14 : 0.44 + cond * 0.16);
-  ctx.fill();
-  // Coat lapel V line on top
-  ctx.beginPath();
-  ctx.moveTo(j.neck.x - 10, j.neck.y + 10);
-  ctx.lineTo(j.neck.x, j.neck.y + 44);
-  ctx.lineTo(j.neck.x + 10, j.neck.y + 10);
-  ctx.strokeStyle = rgba(c, 0.3 + cond * 0.22);
-  ctx.lineWidth = 1.2;
+  ctx.moveTo(j.neck.x - 12, j.neck.y + 8);
+  ctx.lineTo(j.neck.x, j.neck.y + 40);
+  ctx.lineTo(j.neck.x + 12, j.neck.y + 8);
+  ctx.strokeStyle = rgba(c, 0.4 + cond * 0.3);
+  ctx.lineWidth = 1.4;
   ctx.stroke();
   ctx.restore();
 }
@@ -879,34 +869,16 @@ function drawHand(ctx: CanvasRenderingContext2D, p: { x: number; y: number }, ti
 
 function drawBoot(ctx: CanvasRenderingContext2D, p: { x: number; y: number }, grad: CanvasGradient, rim: string) {
   ctx.save();
-  // White rubber sole — Jin-Woo always wears sneakers
   ctx.beginPath();
-  ctx.moveTo(p.x - 11, p.y + 5);
-  ctx.lineTo(p.x + 14, p.y + 5);
-  ctx.lineTo(p.x + 15, p.y + 13);
-  ctx.lineTo(p.x - 12, p.y + 13);
-  ctx.closePath();
-  ctx.fillStyle = rgba("#c4c8d8", 0.88);
-  ctx.fill();
-  // Dark shoe upper (same fabric as coat)
-  ctx.beginPath();
-  ctx.moveTo(p.x - 9, p.y - 8);
-  ctx.lineTo(p.x + 10, p.y - 8);
-  ctx.quadraticCurveTo(p.x + 15, p.y - 2, p.x + 14, p.y + 5);
-  ctx.lineTo(p.x - 11, p.y + 5);
-  ctx.quadraticCurveTo(p.x - 12, p.y, p.x - 9, p.y - 8);
+  ctx.moveTo(p.x - 8, p.y - 8);
+  ctx.lineTo(p.x + 8, p.y - 8);
+  ctx.lineTo(p.x + 12, p.y + 12);
+  ctx.lineTo(p.x - 10, p.y + 12);
   ctx.closePath();
   ctx.fillStyle = grad;
   ctx.fill();
-  ctx.lineWidth = 0.9;
+  ctx.lineWidth = 1;
   ctx.strokeStyle = rim;
-  ctx.stroke();
-  // Lace criss-cross detail
-  ctx.strokeStyle = rgba("#b0b4c8", 0.5);
-  ctx.lineWidth = 0.7;
-  ctx.beginPath();
-  ctx.moveTo(p.x - 5, p.y - 4); ctx.lineTo(p.x + 5, p.y - 1);
-  ctx.moveTo(p.x - 5, p.y + 0); ctx.lineTo(p.x + 5, p.y + 3);
   ctx.stroke();
   ctx.restore();
 }
@@ -962,211 +934,55 @@ function drawHead(
 ) {
   const h = j.headC;
   const top = j.headTop;
-  // Jin-Woo warm anime skin — dims when shackled
-  const skin = penalty ? "#9a7860" : tier <= 1 && weak ? "#b89070" : "#c49572";
-
   ctx.save();
-
-  // ── NECK ──
+  // face base
   ctx.beginPath();
-  ctx.moveTo(h.x - 8, h.y + 13);
-  ctx.lineTo(h.x + 8, h.y + 13);
-  ctx.lineTo(h.x + 7, j.neck.y + 2);
-  ctx.lineTo(h.x - 7, j.neck.y + 2);
-  ctx.closePath();
-  ctx.fillStyle = skin;
+  ctx.ellipse(h.x, h.y, 15, 18, 0, 0, Math.PI * 2);
+  ctx.fillStyle = mix(tint, "#0a0d16", 0.5);
   ctx.fill();
-
-  // ── FACE — sharp anime jaw (Jin-Woo specific) ──
+  // HOOD — drapes over the head, peaked, framing the face
   ctx.beginPath();
-  ctx.moveTo(h.x - 14, h.y - 12);
-  ctx.bezierCurveTo(h.x - 15, h.y - 20, h.x + 15, h.y - 20, h.x + 14, h.y - 12);
-  ctx.lineTo(h.x + 13, h.y + 2);
-  ctx.lineTo(h.x + 8, h.y + 12);
-  ctx.lineTo(h.x, h.y + 17);
-  ctx.lineTo(h.x - 8, h.y + 12);
-  ctx.lineTo(h.x - 13, h.y + 2);
+  ctx.moveTo(j.shL.x + 6, j.shL.y + 6);
+  ctx.quadraticCurveTo(h.x - 30, h.y - 10, top.x - 4, top.y);
+  ctx.quadraticCurveTo(h.x, top.y - 10, top.x + 4, top.y);
+  ctx.quadraticCurveTo(h.x + 30, h.y - 10, j.shR.x - 6, j.shR.y + 6);
+  ctx.quadraticCurveTo(h.x + 22, h.y + 6, h.x + 13, h.y - 2);
+  ctx.quadraticCurveTo(h.x, h.y - 16, h.x - 13, h.y - 2);
+  ctx.quadraticCurveTo(h.x - 22, h.y + 6, j.shL.x + 6, j.shL.y + 6);
   ctx.closePath();
-  const skinGrad = ctx.createLinearGradient(h.x - 14, h.y - 12, h.x + 6, h.y + 17);
-  skinGrad.addColorStop(0, skin);
-  skinGrad.addColorStop(0.65, mix(skin, "#0a080e", 0.12));
-  skinGrad.addColorStop(1, mix(skin, "#0a080e", 0.32));
-  ctx.fillStyle = skinGrad;
+  const hg = ctx.createLinearGradient(0, top.y, 0, j.shL.y);
+  hg.addColorStop(0, mix(tint, "#0b0e18", weak ? 0.6 : 0.32));
+  hg.addColorStop(1, "#05070f");
+  ctx.fillStyle = hg;
   ctx.fill();
-  ctx.strokeStyle = rgba(skin, 0.3);
-  ctx.lineWidth = 0.7;
+  ctx.lineWidth = 1.3;
+  ctx.strokeStyle = rim;
   ctx.stroke();
-
-  // ── HAIR — Jin-Woo black spiky style ──
-  const hairC = "#07070d";
-  ctx.shadowColor = "rgba(8,8,20,0.9)";
-  ctx.shadowBlur = 5;
-  ctx.fillStyle = hairC;
-
-  // Main hair mass — covers top and sides
+  // inner face shadow
   ctx.beginPath();
-  ctx.moveTo(h.x - 15, h.y - 5);
-  ctx.quadraticCurveTo(h.x - 20, h.y - 22, h.x - 10, top.y + 2);
-  ctx.quadraticCurveTo(h.x - 4, top.y - 4, h.x, top.y - 2);
-  ctx.quadraticCurveTo(h.x + 8, top.y - 10, h.x + 16, top.y - 2);
-  ctx.lineTo(h.x + 18, h.y - 18);
-  ctx.lineTo(h.x + 15, h.y - 5);
-  ctx.quadraticCurveTo(h.x + 8, h.y - 15, h.x, h.y - 17);
-  ctx.quadraticCurveTo(h.x - 8, h.y - 15, h.x - 15, h.y - 5);
-  ctx.closePath();
+  ctx.ellipse(h.x, h.y + 1, 11, 14, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(3,4,9,0.95)";
   ctx.fill();
-
-  // Left side hair behind ear
-  ctx.beginPath();
-  ctx.moveTo(h.x - 14, h.y - 6);
-  ctx.quadraticCurveTo(h.x - 20, h.y + 4, h.x - 18, h.y + 12);
-  ctx.lineTo(h.x - 14, h.y + 10);
-  ctx.quadraticCurveTo(h.x - 16, h.y + 2, h.x - 14, h.y - 4);
-  ctx.closePath();
-  ctx.fill();
-
-  // Crown spiky tufts — Jin-Woo characteristic spikes
-  const tufts: [number, number, number, number, number][] = [
-    [-10, 4, -16, -10, 5],
-    [-4,  2, -8,  -14, 4],
-    [ 2,  0,  0,  -18, 5],
-    [ 8,  2, 14,  -12, 4],
-    [14,  4, 20,  -6,  3],
-  ];
-  for (const [bx, by, tx, ty, w] of tufts) {
+  // EYES — glowing, color per rank, pulse with vitality
+  const eyeCol =
+    tier >= 7 ? "#ffffff" : tier >= 6 ? "#ff5a5a" : tier >= 2 ? c : weak ? "#7d8596" : "#c9cdd6";
+  const pulse = 0.55 + 0.45 * Math.abs(Math.sin(t * (weak ? 1.2 : 2)));
+  const eyeA = (penalty ? 0.4 : 0.6 + cond * 0.4) * pulse;
+  ctx.save();
+  ctx.globalAlpha = eyeA;
+  ctx.fillStyle = eyeCol;
+  ctx.shadowColor = eyeCol;
+  ctx.shadowBlur = 8 + cond * 8;
+  for (const side of [-1, 1]) {
     ctx.beginPath();
-    ctx.moveTo(top.x + bx - w / 2, top.y + by);
-    ctx.lineTo(top.x + tx, top.y + ty);
-    ctx.lineTo(top.x + bx + w / 2, top.y + by);
+    ctx.moveTo(h.x + side * 4, h.y - 3);
+    ctx.lineTo(h.x + side * 9, h.y - 5);
+    ctx.lineTo(h.x + side * 8, h.y + 1);
+    ctx.lineTo(h.x + side * 4, h.y + 1);
     ctx.closePath();
     ctx.fill();
   }
-
-  // Front strands falling toward forehead
-  ctx.strokeStyle = hairC;
-  ctx.lineCap = "round";
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(h.x - 5, h.y - 17);
-  ctx.quadraticCurveTo(h.x - 7, h.y - 10, h.x - 3, h.y - 5);
-  ctx.stroke();
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(h.x + 3, h.y - 17);
-  ctx.quadraticCurveTo(h.x + 5, h.y - 11, h.x + 2, h.y - 7);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // ── EYES — Sung Jin-Woo signature glow ──
-  // UNRANKED/E: dim. D-B: bright cerulean blue (his signature).
-  // A-S: purple monarch. SS: white divine.
-  const eyeCol = tier >= 7 ? "#c9e8ff"
-    : tier >= 6 ? "#9c27b0"
-    : tier >= 5 ? "#7c4dff"
-    : tier <= 1 ? "#5a6878"
-    : "#1e88e5";
-  const eyeGlowCol = tier >= 7 ? "#e8f4ff"
-    : tier >= 5 ? "#e040fb"
-    : tier <= 1 ? "#3a4858"
-    : "#42a5f5";
-  const eyeBright = tier >= 7 ? "#ffffff"
-    : tier >= 5 ? "#f3e5f5"
-    : tier <= 1 ? "#6a7888"
-    : "#90caf9";
-  const pulse = 0.68 + 0.32 * Math.abs(Math.sin(t * (weak ? 0.9 : 2.5)));
-  const eyeA  = (penalty ? 0.25 : 0.75 + cond * 0.25) * pulse;
-  const glowR  = 12 + cond * 16 + (tier >= 5 ? 10 : 0);
-
-  ctx.save();
-  for (const side of [-1, 1]) {
-    const ex = h.x + side * 5.5;
-    const ey = h.y - 3;
-    ctx.save();
-    // Eye socket depth shadow
-    ctx.globalAlpha = 0.72;
-    ctx.fillStyle = mix(skin, "#040408", 0.75);
-    ctx.beginPath();
-    ctx.ellipse(ex, ey, 5.5, 4.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Glowing iris
-    ctx.globalAlpha = eyeA;
-    ctx.fillStyle = eyeCol;
-    ctx.shadowColor = eyeGlowCol;
-    ctx.shadowBlur = glowR;
-    ctx.beginPath();
-    ctx.ellipse(ex, ey, 3.8, 4.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Bright inner core
-    ctx.globalAlpha = eyeA * 0.9;
-    ctx.fillStyle = eyeBright;
-    ctx.shadowBlur = glowR * 0.55;
-    ctx.beginPath();
-    ctx.ellipse(ex, ey - 0.5, 1.8, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Pupil (dark slit)
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "#01010a";
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.ellipse(ex, ey, 1, 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Upper eyelid line — sharp anime style
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = "#05050e";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(ex - 4.5, ey - 1.5);
-    ctx.quadraticCurveTo(ex + side * 0.5, ey - 4.5, ex + 4.5, ey - 1.5);
-    ctx.stroke();
-    // Lower lash line
-    ctx.strokeStyle = mix(skin, "#04060e", 0.7);
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(ex - 3.5, ey + 2.5);
-    ctx.quadraticCurveTo(ex, ey + 3.5, ex + 3.5, ey + 2);
-    ctx.stroke();
-    ctx.restore();
-  }
   ctx.restore();
-
-  // ── EYEBROWS — sharp, inner end tilts down (serious/stoic expression) ──
-  ctx.save();
-  ctx.strokeStyle = "#06060e";
-  ctx.lineWidth = 2.3;
-  ctx.lineCap = "round";
-  for (const side of [-1, 1]) {
-    const bx = h.x + side * 5.5;
-    const by = h.y - 8.5;
-    ctx.beginPath();
-    ctx.moveTo(bx + side * 3.5, by - 2);   // outer end (higher)
-    ctx.lineTo(bx - side * 4,   by + (side > 0 ? 1.5 : 1)); // inner end (lower — furrowed)
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // ── NOSE BRIDGE — minimal angular hint ──
-  ctx.save();
-  ctx.strokeStyle = rgba(mix(skin, "#04060e", 0.5), 0.5);
-  ctx.lineWidth = 1;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(h.x + 1, h.y - 1);
-  ctx.lineTo(h.x - 2, h.y + 5);
-  ctx.stroke();
-  ctx.restore();
-
-  // ── MOUTH — stoic neutral, barely curved ──
-  ctx.save();
-  ctx.strokeStyle = rgba(mix(skin, "#04060e", 0.6), 0.68);
-  ctx.lineWidth = 1.4;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(h.x - 5, h.y + 9);
-  ctx.quadraticCurveTo(h.x, h.y + 10, h.x + 5, h.y + 9);
-  ctx.stroke();
-  ctx.restore();
-
   ctx.restore();
 }
 
