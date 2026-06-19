@@ -8,6 +8,7 @@ import { dayNumber, yesterdaySummary, overallCondition, todayStr, isFrozen } fro
 import { LEGEND_LINES, LEGENDS, pick } from "@/lib/legends";
 import HunterStage from "@/components/HunterStage";
 import StatBars from "@/components/StatBars";
+import Heatmap from "@/components/Heatmap";
 import HabitTracker from "@/components/HabitTracker";
 import DailyPlanView from "@/components/DailyPlanView";
 import WeeklyReportView from "@/components/WeeklyReportView";
@@ -174,6 +175,7 @@ export default function Home() {
         </div>
         <div className="lg:col-span-5 space-y-4">
           <StatBars state={state} />
+          <Heatmap state={state} />
           <LessonCard onOpenLibrary={openLibrary} />
         </div>
       </div>
