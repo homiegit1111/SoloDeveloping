@@ -5,6 +5,7 @@ import { AppState, StatKey } from "@/lib/types";
 import { STAT_LABELS } from "@/lib/habits";
 import { statCondition } from "@/lib/store";
 import { STAT_ICON } from "@/components/icons";
+import Sparkline from "@/components/Sparkline";
 
 const COLORS: Record<StatKey, string> = {
   STR: "#ff6b4d",
@@ -34,29 +35,35 @@ export default function StatBars({ state }: { state: AppState }) {
           const decaying = condPct < 34;
           const Icon = STAT_ICON[k];
           return (
-            <div key={k} className="flex items-center gap-3">
-              <span className="shrink-0" style={{ color: COLORS[k] }}>{Icon ? <Icon size={18} /> : null}</span>
-              <span className="w-9 title-font text-xs text-[#cdd8ec] shrink-0">{k}</span>
-              <div className="flex-1 h-[7px] bg-[rgba(255,255,255,0.05)] overflow-hidden relative">
-                <motion.div
-                  className="h-full"
-                  style={{
-                    background: COLORS[k],
-                    boxShadow: decaying ? "none" : `0 0 8px ${COLORS[k]}`,
-                    opacity: decaying ? 0.5 : 1,
-                  }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${condPct}%` }}
-                  transition={{ duration: 0.6 }}
-                />
+            <div key={k} className="space-y-1.5">
+              <div className="flex items-center gap-3">
+                <span className="shrink-0" style={{ color: COLORS[k] }}>{Icon ? <Icon size={18} /> : null}</span>
+                <span className="w-9 title-font text-xs text-[#cdd8ec] shrink-0">{k}</span>
+                <div className="flex-1 h-[7px] bg-[rgba(255,255,255,0.05)] overflow-hidden relative">
+                  <motion.div
+                    className="h-full"
+                    style={{
+                      background: COLORS[k],
+                      boxShadow: decaying ? "none" : `0 0 8px ${COLORS[k]}`,
+                      opacity: decaying ? 0.5 : 1,
+                    }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${condPct}%` }}
+                    transition={{ duration: 0.6 }}
+                  />
+                </div>
+                <span
+                  className="num w-10 text-right text-[11px] shrink-0"
+                  style={{ color: decaying ? "#ff7b7b" : COLORS[k] }}
+                  title={`${state.stats[k]} lifetime points`}
+                >
+                  {decaying ? "▼" : "▲"}{condPct}
+                </span>
               </div>
-              <span
-                className="num w-10 text-right text-[11px] shrink-0"
-                style={{ color: decaying ? "#ff7b7b" : COLORS[k] }}
-                title={`${state.stats[k]} lifetime points`}
-              >
-                {decaying ? "▼" : "▲"}{condPct}
-              </span>
+              <div className="flex items-center gap-3 pl-[30px]">
+                <div className="flex-1" />
+                <Sparkline state={state} stat={k} color={COLORS[k]} />
+              </div>
             </div>
           );
         })}
