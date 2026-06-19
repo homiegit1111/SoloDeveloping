@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { DailyPlan } from "@/lib/types";
@@ -124,7 +124,7 @@ export default function DailyPlanView() {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [readings, setReadings] = useState<Passage[]>([]);
 
-  const dx = diagnose(state);
+  const dx = useMemo(() => diagnose(state), [state]);
 
   async function generate() {
     setLoading(true);
