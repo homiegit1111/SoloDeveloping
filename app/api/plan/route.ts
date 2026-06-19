@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppState, BookChunk, DailyPlan } from "@/lib/types";
-import { callAI, extractJSON } from "@/lib/ai";
+import { callAI, extractJSON, mergeValidatedPlan } from "@/lib/ai";
 import { PLANNER_SYSTEM, buildPlannerUser } from "@/lib/prompts";
 import { diagnose } from "@/lib/diagnosis";
 import { passagesFromDomainChunks, flattenPassages } from "@/lib/retrieval";
@@ -41,21 +41,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ plan: local, source: "local", aiError: "Could not parse AI response" });
   }
 
-  // Merge AI prose over the intelligent scaffold. Keep the diagnosis, boss task,
-  // sources and never-repeat tracking from the engine so memory persists.
+  // Merge AI prose over the intelligent scaffold with per-field Zod validation.
+  // Any field that fails validation falls back to the local scaffold so the
+  // user never sees a broken plan.
+  const plan = mergeValidatedPlan(parsed, local);
+
+  // Always overwrite the bibliographic scaffold with the passages we actually sent.
   const flat = flattenPassages(passages);
-  const plan: DailyPlan = {
-    ...local,
-    ...parsed,
-    date: local.date,
-    generatedBy: "ai",
-    diagnosis: local.diagnosis,
-    bossTask: local.bossTask,
-    sources: local.sources,
-    usedChunkIds: local.usedChunkIds,
-    teachings: local.teachings,
-    bookCitations: flat.slice(0, 6).map((c) => ({ book: c.book, page: c.page })),
-  };
+  plan.bookCitations = flat.slice(0, 6).map((c) => ({ book: c.book, page: c.page }));
+  plan.date = local.date;
+  plan.generatedBy = "ai";
+  plan.diagnosis = local.diagnosis;
+  plan.bossTask = local.bossTask;
+  plan.sources = local.sources;
+  plan.usedChunkIds = local.usedChunkIds;
+  plan.teachings = local.teachings;
 
   return NextResponse.json({ plan, source: "ai", provider: ai.provider });
 }

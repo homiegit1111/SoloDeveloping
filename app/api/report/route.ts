@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppState, BookChunk, WeeklyReport } from "@/lib/types";
-import { callAI, extractJSON } from "@/lib/ai";
+import { callAI, extractJSON, mergeValidatedReport } from "@/lib/ai";
 import { REPORT_SYSTEM, buildReportUser } from "@/lib/prompts";
 import { buildLocalReport } from "@/lib/planner";
 import { passagesFromDomainChunks } from "@/lib/retrieval";
@@ -31,13 +31,11 @@ export async function POST(req: NextRequest) {
   const parsed = extractJSON(ai.text);
   if (!parsed) return NextResponse.json({ report: local, source: "local", aiError: "parse failed" });
 
-  const report: WeeklyReport = {
-    ...local,
-    ...parsed,
-    generatedBy: "ai",
-    stats: local.stats,
-    weekStart: local.weekStart,
-    weekNumber: local.weekNumber,
-  };
+  // Per-field Zod validation — any bad field falls back to the local scaffold.
+  const report = mergeValidatedReport(parsed, local);
+  report.generatedBy = "ai";
+  report.stats = local.stats;
+  report.weekStart = local.weekStart;
+  report.weekNumber = local.weekNumber;
   return NextResponse.json({ report, source: "ai", provider: ai.provider });
 }

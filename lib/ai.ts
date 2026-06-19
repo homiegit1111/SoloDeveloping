@@ -145,6 +145,80 @@ async function callAnthropic(system: string, user: string, maxTokens: number): P
   return { ok: true, text, provider: "anthropic" };
 }
 
+import { z } from "zod";
+import { DailyPlan, WeeklyReport } from "./types";
+
+// ============================================================
+// ZOD SCHEMAS — per-field validation with graceful fallback
+// Each field is validated independently so a single bad field
+// does not poison the entire AI response.
+// ============================================================
+
+const NonEmptyString = z.string().min(1);
+
+const PlanSectionSchema = z.object({
+  title: NonEmptyString,
+  detail: z.string(),
+});
+
+const LegendStorySchema = z.object({
+  legend: NonEmptyString,
+  text: z.string(),
+});
+
+const BookCitationSchema = z.object({
+  book: NonEmptyString,
+  page: z.number(),
+});
+
+/** Validate one field and fall back to the local default on failure. */
+function safeField<T>(schema: z.ZodType<T>, value: unknown, fallback: T): T {
+  const result = schema.safeParse(value);
+  return result.success ? result.data : fallback;
+}
+
+/** Merge an AI-parsed object over a local plan with per-field Zod validation.
+ *  Any field that fails validation (wrong type, empty string, missing) falls
+ *  back to the local scaffold so the user never sees a broken plan.
+ */
+export function mergeValidatedPlan(parsed: unknown, local: DailyPlan): DailyPlan {
+  const p = parsed as Record<string, unknown>;
+  if (!p || typeof p !== "object" || Array.isArray(p)) return local;
+  return {
+    ...local,
+    greeting: safeField(NonEmptyString, p.greeting, local.greeting),
+    verdictOnYesterday: safeField(NonEmptyString, p.verdictOnYesterday, local.verdictOnYesterday),
+    focus: safeField(NonEmptyString, p.focus, local.focus),
+    gym: safeField(PlanSectionSchema, p.gym, local.gym),
+    maths: safeField(PlanSectionSchema, p.maths, local.maths),
+    skincare: safeField(PlanSectionSchema, p.skincare, local.skincare),
+    communication: safeField(PlanSectionSchema, p.communication, local.communication),
+    mindset: safeField(PlanSectionSchema, p.mindset, local.mindset),
+    legendStory: safeField(LegendStorySchema, p.legendStory, local.legendStory),
+    message: safeField(NonEmptyString, p.message, local.message),
+    bookCitations: Array.isArray(p.bookCitations)
+      ? p.bookCitations
+          .map((c) => safeField(BookCitationSchema, c, null))
+          .filter((c): c is { book: string; page: number } => c !== null)
+      : local.bookCitations,
+  };
+}
+
+/** Merge an AI-parsed object over a local report with per-field Zod validation. */
+export function mergeValidatedReport(parsed: unknown, local: WeeklyReport): WeeklyReport {
+  const p = parsed as Record<string, unknown>;
+  if (!p || typeof p !== "object" || Array.isArray(p)) return local;
+  return {
+    ...local,
+    physical: safeField(NonEmptyString, p.physical, local.physical),
+    mental: safeField(NonEmptyString, p.mental, local.mental),
+    skills: safeField(NonEmptyString, p.skills, local.skills),
+    legendChapter: safeField(NonEmptyString, p.legendChapter, local.legendChapter),
+    verdict: safeField(NonEmptyString, p.verdict, local.verdict),
+    nextWeekFocus: safeField(NonEmptyString, p.nextWeekFocus, local.nextWeekFocus),
+  };
+}
+
 // Extract the first JSON object from a model response (handles ```json fences).
 export function extractJSON(text: string): any | null {
   if (!text) return null;
