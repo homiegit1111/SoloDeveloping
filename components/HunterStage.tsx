@@ -42,7 +42,7 @@ export default function HunterStage({
   condition?: number;
   penalty?: boolean;
 }) {
-  const { state, update } = useApp();
+  const { state } = useApp();
   const prefer3d = !!state.settings.use3dModel;
   const [webglOk, setWebglOk] = useState(false);
 
@@ -77,28 +77,6 @@ export default function HunterStage({
         ) : (
           <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
         )}
-      </div>
-
-      {/* 2D / 3D toggle — top-right corner */}
-      <div className="absolute top-3 right-12 z-20">
-        <button
-          onClick={() =>
-            update({
-              settings: { ...state.settings, use3dModel: !use3d },
-            })
-          }
-          className="term text-[9px] px-2 py-1 border opacity-40 hover:opacity-100 active:opacity-100 transition-opacity"
-          style={{ borderColor: "var(--line-strong)", color: "var(--rank)" }}
-          title={
-            use3d
-              ? "Switch to 2D canvas"
-              : webglOk
-                ? "Switch to 3D model (place hunter.glb in /public)"
-                : "3D unavailable — WebGL disabled"
-          }
-        >
-          {use3d ? "2D" : webglOk ? "3D" : "2D"}
-        </button>
       </div>
 
       {/* top HUD — rank assessment + power */}

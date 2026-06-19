@@ -131,15 +131,6 @@ export default function Home() {
     );
   }
 
-  const soundOn = state.settings?.soundEnabled !== false;
-  const soundBtn = (
-    <button
-      onClick={() => update({ settings: { ...state.settings, soundEnabled: !soundOn } })}
-      className="label hover:text-[color:var(--rank)] transition-colors"
-    >
-      sound: {soundOn ? "on" : "off"}
-    </button>
-  );
   const resetBtn = (
     <button
       onClick={() => {
@@ -191,7 +182,6 @@ export default function Home() {
       <JournalCard />
 
       <div className="flex justify-center lg:justify-end gap-5 pt-1">
-        {soundBtn}
         {resetBtn}
       </div>
     </>
@@ -229,7 +219,7 @@ export default function Home() {
           <p className="num text-[12px] mt-2" style={{ color: rank.color }}>
             {rank.name}
           </p>
-          <div className="mt-3 flex flex-col gap-1.5">{soundBtn}{resetBtn}</div>
+          <div className="mt-3 flex flex-col gap-1.5">{resetBtn}</div>
         </div>
       </aside>
 
