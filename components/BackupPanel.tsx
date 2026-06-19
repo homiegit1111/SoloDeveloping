@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useApp } from "@/lib/context";
-import { todayStr } from "@/lib/store";
+import { todayStr, slimState } from "@/lib/store";
 
 // Backup & Restore. localStorage can be wiped (clearing the browser, switching
 // phones). This lets Ravi download his entire save and restore it anywhere —
@@ -15,11 +15,7 @@ export default function BackupPanel() {
   function exportSave() {
     // Strip preloaded book chunks (re-fetchable) to keep the file small;
     // uploaded books + all progress are preserved.
-    const slimChunks: Record<string, unknown> = {};
-    for (const b of state.books) {
-      if (!b.preloaded && state.bookChunks[b.slug]) slimChunks[b.slug] = state.bookChunks[b.slug];
-    }
-    const payload = { ...state, bookChunks: slimChunks, _exportedAt: new Date().toISOString() };
+    const payload = { ...slimState(state), _exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

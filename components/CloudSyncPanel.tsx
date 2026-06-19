@@ -12,15 +12,7 @@ import {
   lastSyncedAt,
   markSynced,
 } from "@/lib/cloudSync";
-
-// Strip re-fetchable preloaded book chunks before sending to the cloud.
-function slim(state: AppState): AppState {
-  const slimChunks: Record<string, any> = {};
-  for (const b of state.books) {
-    if (!b.preloaded && state.bookChunks[b.slug]) slimChunks[b.slug] = state.bookChunks[b.slug];
-  }
-  return { ...state, bookChunks: slimChunks };
-}
+import { slimState } from "@/lib/store";
 
 function hasProgress(state: AppState): boolean {
   return Object.keys(state.history || {}).length > 0 || state.totalXP > 0;
@@ -70,7 +62,7 @@ export default function CloudSyncPanel() {
     if (!configured || !pulledOnce.current) return;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(async () => {
-      const ok = await pushState(slim(state));
+      const ok = await pushState(slimState(state));
       if (ok) setSynced(lastSyncedAt());
     }, 3000);
     return () => {
@@ -80,7 +72,7 @@ export default function CloudSyncPanel() {
 
   async function manualPush() {
     setBusy(true);
-    const ok = await pushState(slim(state));
+    const ok = await pushState(slimState(state));
     setBusy(false);
     setSynced(lastSyncedAt());
     setMsg(ok ? "Saved to the cloud." : "Cloud push failed — check your connection.");
