@@ -21,6 +21,8 @@ export default function ReminderToggle() {
     setPerm(Notification.permission);
   }, []);
 
+  const doneToday = state.history[todayStr()]?.completed.length || 0;
+
   // Fire a reminder when conditions are met (once per day, while app is open).
   useEffect(() => {
     if (!enabled || perm !== "granted") return;
@@ -28,7 +30,6 @@ export default function ReminderToggle() {
       const now = new Date();
       if (now.getHours() < hour) return;
       const today = todayStr();
-      const doneToday = state.history[today]?.completed.length || 0;
       if (doneToday >= 7) return;
       const flag = `solo-reminded-${today}`;
       if (localStorage.getItem(flag)) return;
@@ -44,7 +45,7 @@ export default function ReminderToggle() {
     check();
     const t = setInterval(check, 5 * 60 * 1000);
     return () => clearInterval(t);
-  }, [enabled, perm, hour, state.history]);
+  }, [enabled, perm, hour, doneToday]);
 
   async function toggle() {
     if (perm === "unsupported") return;
