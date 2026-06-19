@@ -49,13 +49,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const idx = await fetch("/books-data/index.json").then((r) => r.json());
+        const idx: { books: { slug: string; title: string; author: string; categories: string[]; pages: number; chunkCount: number; file: string; preloaded: boolean }[] } = await fetch("/books-data/index.json").then((r) => r.json());
         const metas: BookMeta[] = [];
         const chunks: Record<string, BookChunk[]> = {};
         // Fetch every book in PARALLEL — sequential awaits made cold start scale
         // linearly with book count (10 books = 10 round-trips back-to-back).
         const loaded = await Promise.all(
-          (idx.books as any[]).map(async (b) => {
+          idx.books.map(async (b) => {
             try {
               const data = await fetch(`/books-data/${b.file}`).then((r) => r.json());
               return { b, chunks: (data.chunks as BookChunk[]) || [] };
