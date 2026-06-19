@@ -135,8 +135,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const applyFreeze = useCallback((date: string) => {
     setState((s) => {
       if ((s.freezeDays || []).includes(date)) return s;
-      const next: AppState = JSON.parse(JSON.stringify(s));
-      next.freezeDays = [...(next.freezeDays || []), date].sort();
+      const next: AppState = {
+        ...s,
+        freezeDays: [...(s.freezeDays || []), date].sort(),
+        habits: { ...s.habits },
+        stats: { ...s.stats },
+      };
       recomputeDerived(next); // bridge the streak
       return next;
     });
@@ -144,8 +148,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const removeFreeze = useCallback((date: string) => {
     setState((s) => {
-      const next: AppState = JSON.parse(JSON.stringify(s));
-      next.freezeDays = (next.freezeDays || []).filter((d) => d !== date);
+      if (!(s.freezeDays || []).includes(date)) return s;
+      const next: AppState = {
+        ...s,
+        freezeDays: (s.freezeDays || []).filter((d) => d !== date),
+        habits: { ...s.habits },
+        stats: { ...s.stats },
+      };
       recomputeDerived(next);
       return next;
     });

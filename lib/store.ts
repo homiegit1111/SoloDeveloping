@@ -117,35 +117,43 @@ export function slimState(state: AppState): AppState {
   return { ...state, bookChunks: slimChunks };
 }
 
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function saveState(state: AppState) {
   if (typeof window === "undefined") return;
-  const toSave: AppState = slimState(state);
-  try {
-    localStorage.setItem(KEY, JSON.stringify(toSave));
-  } catch (e) {
-    // QuotaExceededError or similar — retry once without any book chunks so the
-    // user's actual progress (habits/XP/streaks) is never lost.
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null;
+    const toSave: AppState = slimState(state);
     try {
-      localStorage.setItem(KEY, JSON.stringify({ ...toSave, bookChunks: {} }));
-    } catch {
-      /* give up silently — progress already in memory for this session */
+      localStorage.setItem(KEY, JSON.stringify(toSave));
+    } catch (e) {
+      // QuotaExceededError or similar — retry once without any book chunks so the
+      // user's actual progress (habits/XP/streaks) is never lost.
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ ...toSave, bookChunks: {} }));
+      } catch {
+        /* give up silently — progress already in memory for this session */
+      }
     }
-  }
+  }, 400);
 }
 
 // Recompute streaks/XP/stats from a habit toggle for a given date (today only).
 export function toggleHabit(state: AppState, habitId: HabitId, date = todayStr()): AppState {
-  const next: AppState = JSON.parse(JSON.stringify(state));
-  const rec: DayRecord = next.history[date] || { date, completed: [], xpEarned: 0 };
+  const rec: DayRecord = state.history[date] || { date, completed: [], xpEarned: 0 };
   const has = rec.completed.includes(habitId);
+  const completed = has
+    ? rec.completed.filter((h) => h !== habitId)
+    : [...rec.completed, habitId];
+  const nextRec: DayRecord = { ...rec, completed, xpEarned: dayXP(completed) };
 
-  if (has) {
-    rec.completed = rec.completed.filter((h) => h !== habitId);
-  } else {
-    rec.completed.push(habitId);
-  }
-  rec.xpEarned = dayXP(rec.completed);
-  next.history[date] = rec;
+  const next: AppState = {
+    ...state,
+    history: { ...state.history, [date]: nextRec },
+    habits: { ...state.habits },
+    stats: { ...state.stats },
+  };
 
   // Recompute total XP from all history (source of truth)
   next.totalXP = Object.values(next.history).reduce((s, r) => s + r.xpEarned, 0);
@@ -287,10 +295,7 @@ export function yesterdaySummary(state: AppState): { date: string; completed: nu
 
 // Book helpers
 export function setBooks(state: AppState, books: BookMeta[], chunks: Record<string, BookChunk[]>): AppState {
-  const next: AppState = JSON.parse(JSON.stringify(state));
-  next.books = books;
-  next.bookChunks = chunks;
-  return next;
+  return { ...state, books, bookChunks: chunks };
 }
 
 export function activeChunks(state: AppState): BookChunk[] {
