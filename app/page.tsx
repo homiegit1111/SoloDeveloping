@@ -18,6 +18,7 @@ import JournalCard from "@/components/JournalCard";
 import HeaderTools from "@/components/HeaderTools";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
 import RankUpCeremony from "@/components/RankUpCeremony";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { isFrozen } from "@/lib/store";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
@@ -265,23 +266,25 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="px-4 lg:px-8 pb-28 lg:pb-12 max-w-md lg:max-w-[1200px] mx-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4"
-            >
-              {tab === "home" && homeContent}
-              {tab === "plan" && <DailyPlanView />}
-              {tab === "library" && <LibraryView initialSlug={libSlug} clearInitial={() => setLibSlug(null)} />}
-              {tab === "report" && <WeeklyReportView />}
-            </motion.div>
-          </AnimatePresence>
-        </main>
+        <ErrorBoundary>
+          <main className="px-4 lg:px-8 pb-28 lg:pb-12 max-w-md lg:max-w-[1200px] mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                {tab === "home" && homeContent}
+                {tab === "plan" && <DailyPlanView />}
+                {tab === "library" && <LibraryView initialSlug={libSlug} clearInitial={() => setLibSlug(null)} />}
+                {tab === "report" && <WeeklyReportView />}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </ErrorBoundary>
       </div>
 
       {/* ===== Mobile bottom nav ===== */}

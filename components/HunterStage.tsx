@@ -2,12 +2,25 @@
 
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { Rank } from "@/lib/types";
 import { rankProgress, nextRank } from "@/lib/ranks";
 import HunterCanvas from "./HunterCanvas";
 import { useApp } from "@/lib/context";
 
 const HunterModel3D = dynamic(() => import("./HunterModel3D"), { ssr: false });
+
+function supportsWebGL(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    );
+  } catch {
+    return false;
+  }
+}
 
 // ============================================================
 // HUNTER STAGE — the HQ centerpiece. The Hunter fills the whole
@@ -30,7 +43,14 @@ export default function HunterStage({
   penalty?: boolean;
 }) {
   const { state, update } = useApp();
-  const use3d = !!(state.settings as any).use3dModel;
+  const prefer3d = !!(state.settings as any).use3dModel;
+  const [webglOk, setWebglOk] = useState(false);
+
+  useEffect(() => {
+    setWebglOk(supportsWebGL());
+  }, []);
+
+  const use3d = prefer3d && webglOk;
 
   const progress = rankProgress(totalXP);
   const nxt = nextRank(totalXP);
@@ -72,10 +92,12 @@ export default function HunterStage({
           title={
             use3d
               ? "Switch to 2D canvas"
-              : "Switch to 3D model (place hunter.glb in /public)"
+              : webglOk
+                ? "Switch to 3D model (place hunter.glb in /public)"
+                : "3D unavailable — WebGL disabled"
           }
         >
-          {use3d ? "2D" : "3D"}
+          {use3d ? "2D" : webglOk ? "3D" : "2D"}
         </button>
       </div>
 
