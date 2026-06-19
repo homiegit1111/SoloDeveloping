@@ -7,7 +7,7 @@
 import { AppState, HabitId, DailyPlan } from "./types";
 import { ALL_HABIT_IDS, HABIT_BY_ID } from "./habits";
 import { rankForXP } from "./ranks";
-import { dayNumber, yesterdaySummary, completionRate, todayStr } from "./store";
+import { dayNumber, yesterdaySummary, completionRate, todayStr, addDays } from "./store";
 export type { Domain } from "./books";
 
 export type Phase =
@@ -51,7 +51,7 @@ const STUDY_HABITS: HabitId[] = ["study", "maths"];
 
 function recentPlans(state: AppState, days: number): DailyPlan[] {
   const plans = Object.values(state.plans || {});
-  const cutoff = todayStr(new Date(Date.now() - days * 86400000));
+  const cutoff = addDays(todayStr(), -days);
   return plans
     .filter((p) => p.date >= cutoff)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -65,7 +65,7 @@ function activeDayCount(state: AppState): number {
 function recentZeroDays(state: AppState, n: number): number {
   let zero = 0;
   for (let i = 1; i <= n; i++) {
-    const d = todayStr(new Date(Date.now() - i * 86400000));
+    const d = addDays(todayStr(), -i);
     const rec = state.history[d];
     if (!rec || rec.completed.length === 0) zero++;
   }
@@ -76,7 +76,7 @@ function missCounts(state: AppState, days = 14): Record<HabitId, number> {
   const counts = {} as Record<HabitId, number>;
   for (const id of ALL_HABIT_IDS) counts[id] = 0;
   for (let i = 1; i <= days; i++) {
-    const d = todayStr(new Date(Date.now() - i * 86400000));
+    const d = addDays(todayStr(), -i);
     const rec = state.history[d];
     // only count days that exist in history (he was "in the system")
     if (!rec) continue;

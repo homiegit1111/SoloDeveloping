@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { rankForXP } from "@/lib/ranks";
-import { dayNumber, yesterdaySummary, overallCondition, todayStr } from "@/lib/store";
+import { dayNumber, yesterdaySummary, overallCondition, todayStr, isFrozen } from "@/lib/store";
 import { LEGEND_LINES, LEGENDS, pick } from "@/lib/legends";
 import HunterStage from "@/components/HunterStage";
 import StatBars from "@/components/StatBars";
@@ -19,7 +19,6 @@ import HeaderTools from "@/components/HeaderTools";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
 import RankUpCeremony from "@/components/RankUpCeremony";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { isFrozen } from "@/lib/store";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
 

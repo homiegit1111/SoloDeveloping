@@ -224,7 +224,6 @@ const STAT_ORDER: StatKey[] = ["STR", "INT", "WIL", "CHA", "VIT", "CRE"];
 
 export function statCondition(state: AppState): Record<StatKey, number> {
   const days = 7;
-  const now = Date.now();
   const byStat: Partial<Record<StatKey, HabitId[]>> = {};
   for (const id of ALL_HABIT_IDS) {
     const s = HABIT_BY_ID[id].stat;
@@ -236,7 +235,7 @@ export function statCondition(state: AppState): Record<StatKey, number> {
     if (!ids.length) { out[stat] = 0; continue; }
     let num = 0, den = 0;
     for (let i = 0; i < days; i++) {
-      const d = todayStr(new Date(now - i * 86400000));
+      const d = addDays(todayStr(), -i);
       const w = Math.pow(0.82, i); // recent days matter most
       const rec = state.history[d];
       for (const id of ids) {
@@ -275,10 +274,9 @@ export function isCompleted(state: AppState, habitId: HabitId, date = todayStr()
 }
 
 export function completionRate(state: AppState, days = 7): number {
-  const today = new Date();
   let done = 0;
   for (let i = 0; i < days; i++) {
-    const d = todayStr(new Date(today.getTime() - i * 86400000));
+    const d = addDays(todayStr(), -i);
     done += state.history[d]?.completed.length || 0;
   }
   return Math.round((done / (days * ALL_HABIT_IDS.length)) * 100);

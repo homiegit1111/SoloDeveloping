@@ -43,7 +43,7 @@ export default function HunterStage({
   penalty?: boolean;
 }) {
   const { state, update } = useApp();
-  const prefer3d = !!(state.settings as any).use3dModel;
+  const prefer3d = !!state.settings.use3dModel;
   const [webglOk, setWebglOk] = useState(false);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function HunterStage({
         <button
           onClick={() =>
             update({
-              settings: { ...(state.settings as any), use3dModel: !use3d },
+              settings: { ...state.settings, use3dModel: !use3d },
             })
           }
           className="term text-[9px] px-2 py-1 border opacity-40 hover:opacity-100 active:opacity-100 transition-opacity"
