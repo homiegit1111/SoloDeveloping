@@ -20,6 +20,8 @@ import HeaderTools from "@/components/HeaderTools";
 import { RewardOverlay, PunishmentOverlay } from "@/components/Overlays";
 import RankUpCeremony from "@/components/RankUpCeremony";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import MagneticGlowNav from "@/components/MagneticGlowNav";
+import BackgroundParticles from "@/components/BackgroundParticles";
 import { NAV_ICON } from "@/components/icons";
 import { setSoundEnabled } from "@/lib/sound";
 
@@ -191,6 +193,7 @@ export default function Home() {
 
   return (
     <div className={`bg-system min-h-screen ${penaltyActive ? "penalty-zone" : ""}`}>
+      <BackgroundParticles penalty={penaltyActive} />
       {/* ===== Desktop nav rail ===== */}
       <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 w-[244px] border-r bg-[rgba(4,5,11,0.7)] backdrop-blur-md z-40" style={{ borderColor: "var(--line)" }}>
         <div className="px-5 pt-6 pb-5 border-b" style={{ borderColor: "var(--line)" }}>
@@ -279,36 +282,7 @@ export default function Home() {
       </div>
 
       {/* ===== Mobile bottom nav ===== */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
-        <div
-          className="flex justify-around items-stretch px-1 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] border-t backdrop-blur-xl"
-          style={{ borderColor: "var(--line-strong)", background: "rgba(4,5,11,0.92)" }}
-        >
-          {TABS.map((t) => {
-            const Icon = NAV_ICON[t.id];
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                aria-label={t.label}
-                className="relative flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors"
-                style={{ color: active ? "var(--rank)" : "rgba(150,160,180,0.55)" }}
-              >
-                {active && (
-                  <motion.span
-                    layoutId="mnav"
-                    className="absolute top-0 h-[2px] w-8 rounded-full"
-                    style={{ background: "var(--rank)", boxShadow: "0 0 10px var(--rank)" }}
-                  />
-                )}
-                <Icon size={20} style={{ filter: active ? "drop-shadow(0 0 6px var(--rank))" : "none" }} />
-                <span className="title-font text-[10px] tracking-wide">{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      <MagneticGlowNav activeTab={tab} onChange={setTab} tabs={TABS} />
 
       <RewardOverlay
         open={!!reward}
