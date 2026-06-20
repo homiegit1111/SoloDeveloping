@@ -75,6 +75,10 @@ Streaks:
 ${habitLines}
 Yesterday missed: ${missed}
 Most-missed (14d): ${mostMissed}
+Plan completion yesterday: ${dx.planCompletionYesterday}%
+Plan completion 7-day avg: ${dx.planCompletion7Avg}%
+Boss task missed yesterday: ${dx.bossMissedYesterday ? "YES — address this today" : "no"}
+Boss streak: ${dx.bossStreak} day${dx.bossStreak !== 1 ? "s" : ""}
 Recently-used teachings (DO NOT repeat): ${dx.recentTeachings.join(", ") || "none"}
 Active mentors today: ${dx.activeMentors.join(", ")}
 

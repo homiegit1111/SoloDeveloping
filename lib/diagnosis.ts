@@ -7,7 +7,7 @@
 import { AppState, HabitId, DailyPlan } from "./types";
 import { ALL_HABIT_IDS, HABIT_BY_ID } from "./habits";
 import { rankForXP } from "./ranks";
-import { dayNumber, yesterdaySummary, completionRate, todayStr, addDays } from "./store";
+import { dayNumber, yesterdaySummary, completionRate, todayStr, addDays, planCompletionRate } from "./store";
 export type { Domain } from "./books";
 
 export type Phase =
@@ -45,6 +45,10 @@ export interface Diagnosis {
   recentTeachings: string[]; // mentor keys used in the last 1-2 plans
   usedChunkIds: string[]; // chunk ids used in the last 7 plans
   bossReady: boolean;
+  planCompletionYesterday: number; // 0-100
+  planCompletion7Avg: number; // 0-100
+  bossMissedYesterday: boolean;
+  bossStreak: number; // consecutive days boss task completed
 }
 
 const STUDY_HABITS: HabitId[] = ["study", "maths"];
@@ -55,6 +59,58 @@ function recentPlans(state: AppState, days: number): DailyPlan[] {
   return plans
     .filter((p) => p.date >= cutoff)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+function toSteps(detail: string): string[] {
+  if (!detail) return [];
+  let parts = detail.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+  if (parts.length <= 1) {
+    parts = detail.split(/(?<=[.!?])\s+(?=[A-Z0-9“"'])|;\s+/).map((s) => s.trim()).filter(Boolean);
+  }
+  return parts.map((p) => p.replace(/^[\-•▸◦*\d.)\s]+/, "").trim()).filter((p) => p.length > 1);
+}
+
+function planTotalSteps(plan: DailyPlan): number {
+  const sectionKeys: Array<keyof DailyPlan> = ["gym", "maths", "skincare", "communication", "mindset"];
+  let n = 0;
+  for (const k of sectionKeys) {
+    const block = plan[k] as { detail?: string } | undefined;
+    if (block && typeof block === "object" && "detail" in block) {
+      n += toSteps((block as any).detail).length;
+    }
+  }
+  if (plan.bossTask?.detail) n += toSteps(plan.bossTask.detail).length;
+  return n;
+}
+
+function planCompletionForDate(state: AppState, date: string): number {
+  const plan = state.plans[date];
+  if (!plan) return 0;
+  const total = planTotalSteps(plan);
+  if (total === 0) return 0;
+  return planCompletionRate(state, date, total);
+}
+
+function bossTaskCompleted(state: AppState, date: string): boolean {
+  const plan = state.plans[date];
+  if (!plan || !plan.bossTask?.detail) return false;
+  const bossSteps = toSteps(plan.bossTask.detail);
+  if (bossSteps.length === 0) return false;
+  const completions = state.planCompletions[date] || [];
+  // Boss is "completed" if at least half its steps are checked
+  const bossIds = bossSteps.map((_, i) => `boss::step-${i}`);
+  const done = bossIds.filter((id) => completions.includes(id)).length;
+  return done >= bossSteps.length / 2;
+}
+
+function bossStreak(state: AppState): number {
+  let streak = 0;
+  for (let i = 1; i <= 30; i++) {
+    const d = addDays(todayStr(), -i);
+    if (bossTaskCompleted(state, d)) streak++;
+    else break;
+  }
+  return streak;
 }
 
 function activeDayCount(state: AppState): number {
@@ -185,6 +241,24 @@ export function diagnose(state: AppState): Diagnosis {
     day >= 5 &&
     (phase === "momentum" || phase === "playing_safe" || phase === "plateau" || phase === "discipline_breaking");
 
+  // plan adherence
+  const yesterday = addDays(todayStr(), -1);
+  const planCompletionYesterday = Math.round(planCompletionForDate(state, yesterday) * 100);
+  let planCompletion7Sum = 0;
+  let planCompletion7Count = 0;
+  for (let i = 1; i <= 7; i++) {
+    const d = addDays(todayStr(), -i);
+    if (state.plans[d]) {
+      planCompletion7Sum += planCompletionForDate(state, d);
+      planCompletion7Count++;
+    }
+  }
+  const planCompletion7Avg = planCompletion7Count > 0
+    ? Math.round((planCompletion7Sum / planCompletion7Count) * 100)
+    : 0;
+  const bossMissedYesterday = !!state.plans[yesterday]?.bossTask && !bossTaskCompleted(state, yesterday);
+  const bossStreakDays = bossStreak(state);
+
   const summary = buildSummary(phase, { day, rank: rankObj.name, completion7, gymStreak, disciplineStreak, mostMissed });
 
   return {
@@ -208,6 +282,10 @@ export function diagnose(state: AppState): Diagnosis {
     recentTeachings,
     usedChunkIds,
     bossReady,
+    planCompletionYesterday,
+    planCompletion7Avg,
+    bossMissedYesterday,
+    bossStreak: bossStreakDays,
   };
 }
 

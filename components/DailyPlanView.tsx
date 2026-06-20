@@ -341,20 +341,34 @@ export default function DailyPlanView() {
                     </p>
                   </div>
                   <ol className="space-y-1.5 mt-2">
-                    {toSteps(plan.bossTask.detail).map((st, i) => (
-                      <li
-                        key={i}
-                        className="flex gap-2.5 mono text-[13.5px] text-[#f1e3e4] leading-relaxed"
-                      >
-                        <span
-                          className="term text-[11px] mt-0.5 shrink-0"
-                          style={{ color: "#ff6b78" }}
-                        >
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span>{st}</span>
-                      </li>
-                    ))}
+                    {toSteps(plan.bossTask.detail).map((st, i) => {
+                      const sid = `boss::step-${i}`;
+                      const completed = (state.planCompletions[today] || []).includes(sid);
+                      return (
+                        <li key={sid} className="flex gap-2.5 items-start">
+                          <button
+                            onClick={() => togglePlanCompletion(today, sid)}
+                            className="term text-[11px] mt-0.5 w-5 h-5 grid place-items-center shrink-0 rounded-sm transition-all duration-150"
+                            style={{
+                              border: completed
+                                ? "1px solid #ff6b78"
+                                : "1px solid rgba(255,107,120,0.4)",
+                              background: completed
+                                ? "rgba(255,107,120,0.18)"
+                                : "transparent",
+                              color: completed ? "#ff6b78" : "#ff8089",
+                            }}
+                            aria-label={completed ? `Mark incomplete: ${st}` : `Mark complete: ${st}`}
+                            title={completed ? "Click to uncheck" : "Click to complete"}
+                          >
+                            {completed ? "✓" : String(i + 1).padStart(2, "0")}
+                          </button>
+                          <span className={`mono text-[13.5px] leading-relaxed ${completed ? "text-[#a07478] line-through" : "text-[#f1e3e4]"}`}>
+                            {st}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ol>
                   <p className="mono text-[11px] text-[#a59a82] mt-2.5 italic">
                     Why now: {plan.bossTask.trigger}

@@ -538,3 +538,41 @@ describe("planCompletionRate", () => {
     expect(planCompletionRate(next, d, 2)).toBe(1);
   });
 });
+
+// ============================================================
+// Diagnosis plan-completion integration (lightweight)
+// ============================================================
+import { diagnose } from "./diagnosis";
+
+describe("diagnose plan adherence", () => {
+  it("reports zero plan completion when no plans exist", () => {
+    const s = defaultState("Test");
+    const dx = diagnose(s);
+    expect(dx.planCompletionYesterday).toBe(0);
+    expect(dx.planCompletion7Avg).toBe(0);
+    expect(dx.bossMissedYesterday).toBe(false);
+    expect(dx.bossStreak).toBe(0);
+  });
+
+  it("reports yesterday plan completion based on sub-objective ticks", () => {
+    const s = defaultState("Test");
+    const y = addDays(todayStr(), -1);
+    s.plans[y] = {
+      date: y,
+      generatedBy: "local",
+      greeting: "g",
+      verdictOnYesterday: "v",
+      focus: "f",
+      gym: { title: "Gym", detail: "Squats 3x5\nBench 3x5" },
+      maths: { title: "M", detail: "" },
+      skincare: { title: "S", detail: "" },
+      communication: { title: "C", detail: "" },
+      mindset: { title: "M", detail: "" },
+      legendStory: { legend: "L", text: "t" },
+      message: "m",
+    };
+    s.planCompletions[y] = ["gym::step-0"];
+    const dx = diagnose(s);
+    expect(dx.planCompletionYesterday).toBe(50); // 1 of 2 gym steps
+  });
+});
