@@ -15,6 +15,7 @@ import {
   yesterdaySummary,
   togglePlanCompletion,
   planCompletionRate,
+  backfillHistory,
 } from "./store";
 import { dayXP } from "./habits";
 import { rankForXP, nextRank, rankProgress } from "./ranks";
@@ -543,6 +544,34 @@ describe("planCompletionRate", () => {
 // Diagnosis plan-completion integration (lightweight)
 // ============================================================
 import { diagnose } from "./diagnosis";
+
+// ============================================================
+// backfillHistory
+// ============================================================
+describe("backfillHistory", () => {
+  it("does nothing when zero days or no habits selected", () => {
+    const s = defaultState("Test");
+    expect(backfillHistory(s, [], 5)).toBe(s);
+    expect(backfillHistory(s, ["gym"], 0)).toBe(s);
+  });
+
+  it("backfills N days with selected habits and updates derived stats", () => {
+    const s = defaultState("Test");
+    const next = backfillHistory(s, ["gym", "study"], 5);
+    const dates = Object.keys(next.history).sort();
+    expect(dates.length).toBe(5);
+    // all those days should have gym and study completed
+    for (const d of dates) {
+      expect(next.history[d].completed).toContain("gym");
+      expect(next.history[d].completed).toContain("study");
+    }
+    expect(next.habits.gym.streak).toBe(5);
+    expect(next.habits.study.streak).toBe(5);
+    expect(next.stats.STR).toBe(5);
+    expect(next.stats.INT).toBe(5);
+    expect(next.totalXP).toBeGreaterThan(0);
+  });
+});
 
 describe("diagnose plan adherence", () => {
   it("reports zero plan completion when no plans exist", () => {

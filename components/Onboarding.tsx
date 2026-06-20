@@ -5,11 +5,17 @@ import { motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import ParticleField from "./ParticleField";
 import { sysOpen } from "@/lib/sound";
+import { backfillHistory } from "@/lib/store";
+import { ALL_HABIT_IDS, HABIT_BY_ID } from "@/lib/habits";
+import type { HabitId } from "@/lib/types";
 
 // First-run gate: the System "awakens" the Hunter.
 export default function Onboarding({ onDone }: { onDone: () => void }) {
   const { state, update } = useApp();
   const [name, setName] = useState(state.name || "Ravi");
+  const [importOpen, setImportOpen] = useState(false);
+  const [streakDays, setStreakDays] = useState(0);
+  const [importHabits, setImportHabits] = useState<HabitId[]>([]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-system relative overflow-hidden">
@@ -45,10 +51,73 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           style={{ borderColor: "var(--line-strong)" }}
           placeholder="Your name"
         />
+        <div className="relative z-10">
+          <button
+            onClick={() => setImportOpen((v) => !v)}
+            className="term text-[10px] mb-3 block opacity-70 hover:opacity-100 transition-opacity"
+          >
+            {importOpen ? "▾ Hide streak import" : "▸ Already have a streak?"}
+          </button>
+          {importOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mb-4 space-y-3"
+            >
+              <p className="mono text-[11px] text-[#9aa6bd]">
+                Tell The System how many consecutive days you have already completed
+                and which quests you kept.
+              </p>
+              <div>
+                <label className="label block text-left mb-1">Consecutive days</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={365}
+                  value={streakDays}
+                  onChange={(e) => setStreakDays(Math.max(0, Number(e.target.value)))}
+                  className="w-full px-3 py-2 bg-[rgba(255,255,255,0.03)] border title-font text-[#eaf6ff] outline-none transition-colors"
+                  style={{ borderColor: "var(--line-strong)" }}
+                />
+              </div>
+              <div>
+                <label className="label block text-left mb-1">Quests you kept</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {ALL_HABIT_IDS.map((id) => {
+                    const h = HABIT_BY_ID[id];
+                    const checked = importHabits.includes(id);
+                    return (
+                      <button
+                        key={id}
+                        onClick={() =>
+                          setImportHabits((prev) =>
+                            checked ? prev.filter((x) => x !== id) : [...prev, id]
+                          )
+                        }
+                        className={`flex items-center gap-1.5 px-2 py-1.5 border text-[11px] rounded-sm transition-all ${
+                          checked
+                            ? "border-[var(--rank)] bg-[color-mix(in_srgb,var(--rank)_12%,transparent)]"
+                            : "border-[var(--line)] bg-transparent opacity-70"
+                        }`}
+                      >
+                        <span>{h.icon}</span>
+                        <span className="text-[#d6dbe6]">{h.short}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
         <button
           onClick={() => {
             sysOpen();
-            update({ name: name.trim() || "Ravi" });
+            let next = { ...state, name: name.trim() || "Ravi" };
+            if (importOpen && streakDays > 0 && importHabits.length > 0) {
+              next = backfillHistory(next, importHabits, streakDays);
+            }
+            update(next);
             onDone();
           }}
           className="relative z-10 sys-btn w-full py-3.5 text-sm"

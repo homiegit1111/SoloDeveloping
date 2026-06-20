@@ -185,6 +185,23 @@ export function togglePlanCompletion(
   };
 }
 
+export function backfillHistory(
+  state: AppState,
+  habitIds: HabitId[],
+  streakDays: number
+): AppState {
+  if (streakDays <= 0 || habitIds.length === 0) return state;
+  const next: AppState = JSON.parse(JSON.stringify(state)); // deep copy needed for bulk mutation
+  const today = todayStr();
+  for (let i = streakDays - 1; i >= 0; i--) {
+    const d = addDays(today, -(i + 1));
+    const completed = habitIds;
+    next.history[d] = { date: d, completed: [...completed], xpEarned: dayXP(completed) };
+  }
+  recomputeDerived(next);
+  return next;
+}
+
 export function planCompletionRate(
   state: AppState,
   date: string,
@@ -241,6 +258,8 @@ export function recomputeDerived(state: AppState) {
     if (last && daysBetween(last, today) > 1 && !bridged(last, today)) streak = 0;
     state.habits[id] = { streak, best, lastCompleted: last, totalDone: total };
   }
+  state.totalXP = Object.values(state.history).reduce((s, r) => s + r.xpEarned, 0);
+  state.rankIndex = rankForXP(state.totalXP).index;
 }
 
 // ============================================================
