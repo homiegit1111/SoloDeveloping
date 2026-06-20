@@ -13,6 +13,8 @@ import {
   slimState,
   sanitizeState,
   yesterdaySummary,
+  togglePlanCompletion,
+  planCompletionRate,
 } from "./store";
 import { dayXP } from "./habits";
 import { rankForXP, nextRank, rankProgress } from "./ranks";
@@ -496,5 +498,43 @@ describe("yesterdaySummary", () => {
     expect(y.total).toBe(7);
     expect(y.missed).toHaveLength(7);
     expect(y.completed).toBe(0);
+  });
+});
+
+// ============================================================
+// togglePlanCompletion + planCompletionRate
+// ============================================================
+describe("togglePlanCompletion", () => {
+  it("toggles a plan step on and off", () => {
+    const s = defaultState("Test");
+    const d = todayStr();
+    const s1 = togglePlanCompletion(s, d, "gym::step-0");
+    expect(s1.planCompletions[d]).toContain("gym::step-0");
+    const s2 = togglePlanCompletion(s1, d, "gym::step-0");
+    expect(s2.planCompletions[d]).not.toContain("gym::step-0");
+  });
+
+  it("keeps other steps intact when toggling one", () => {
+    const s = defaultState("Test");
+    const d = todayStr();
+    let next = togglePlanCompletion(s, d, "gym::step-0");
+    next = togglePlanCompletion(next, d, "maths::step-0");
+    expect(next.planCompletions[d]).toEqual(["gym::step-0", "maths::step-0"]);
+  });
+});
+
+describe("planCompletionRate", () => {
+  it("returns 0 when nothing done", () => {
+    const s = defaultState("Test");
+    expect(planCompletionRate(s, todayStr(), 5)).toBe(0);
+  });
+
+  it("returns correct ratio", () => {
+    const s = defaultState("Test");
+    const d = todayStr();
+    let next = togglePlanCompletion(s, d, "a");
+    next = togglePlanCompletion(next, d, "b");
+    expect(planCompletionRate(next, d, 5)).toBe(0.4);
+    expect(planCompletionRate(next, d, 2)).toBe(1);
   });
 });

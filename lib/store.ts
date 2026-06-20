@@ -53,6 +53,7 @@ export function defaultState(name = "Ravi"): AppState {
     bookChunks: {},
     journal: {},
     freezeDays: [],
+    planCompletions: {},
     settings: { aiEnabled: true, soundEnabled: true, remindersEnabled: false, reminderHour: 20 },
   };
 }
@@ -94,6 +95,7 @@ export function sanitizeState(parsed: Partial<AppState>): AppState {
     bookChunks: parsed.bookChunks || {},
     journal: parsed.journal || {},
     freezeDays: Array.isArray(parsed.freezeDays) ? parsed.freezeDays : [],
+    planCompletions: parsed.planCompletions || {},
     version: STATE_VERSION,
   };
   // Recompute all derived values from history so XP/streaks/stats are always correct.
@@ -162,6 +164,35 @@ export function toggleHabit(state: AppState, habitId: HabitId, date = todayStr()
   // Recompute stats & habit streaks from scratch (robust + simple)
   recomputeDerived(next);
   return next;
+}
+
+export function togglePlanCompletion(
+  state: AppState,
+  date: string,
+  stepId: string
+): AppState {
+  const existing = state.planCompletions[date] || [];
+  const has = existing.includes(stepId);
+  const nextList = has
+    ? existing.filter((id) => id !== stepId)
+    : [...existing, stepId];
+  return {
+    ...state,
+    planCompletions: {
+      ...state.planCompletions,
+      [date]: nextList,
+    },
+  };
+}
+
+export function planCompletionRate(
+  state: AppState,
+  date: string,
+  totalSteps: number
+): number {
+  if (totalSteps <= 0) return 0;
+  const done = (state.planCompletions[date] || []).length;
+  return Math.min(1, done / totalSteps);
 }
 
 export function recomputeDerived(state: AppState) {

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { DailyPlan } from "@/lib/types";
-import { todayStr, activeChunks } from "@/lib/store";
+import { todayStr, activeChunks, planCompletionRate } from "@/lib/store";
 import { diagnose } from "@/lib/diagnosis";
 import { retrieveAll, domainChunksOf, Passage } from "@/lib/retrieval";
 import {
@@ -76,6 +76,16 @@ function trimPassage(text: string, max = 220): string {
 
 // Break a detail blob into clear sub-objectives. Honours real line breaks first;
 // otherwise splits on sentence boundaries / semicolons so each step reads cleanly.
+function totalPlanSteps(plan: DailyPlan): number {
+  let n = 0;
+  for (const s of SECTIONS) {
+    const block = (plan as any)[s.key] as { title: string; detail: string } | undefined;
+    if (block?.detail) n += toSteps(block.detail).length;
+  }
+  if (plan.bossTask?.detail) n += toSteps(plan.bossTask.detail).length;
+  return n;
+}
+
 function toSteps(detail: string): string[] {
   if (!detail) return [];
   let parts = detail
@@ -112,8 +122,12 @@ function ZoneLabel({ n, children }: { n: string; children: React.ReactNode }) {
   );
 }
 
+function stepId(sectionKey: string, stepIndex: number): string {
+  return `${sectionKey}::step-${stepIndex}`;
+}
+
 export default function DailyPlanView() {
-  const { state, savePlan } = useApp();
+  const { state, savePlan, togglePlanCompletion } = useApp();
   const today = todayStr();
   const existing = state.plans[today];
   const [plan, setPlan] = useState<DailyPlan | null>(existing || null);
@@ -230,6 +244,22 @@ export default function DailyPlanView() {
           >
             ◈ {info}
           </p>
+        )}
+        {plan && (
+          <div className="relative z-10 mt-3 flex items-center gap-2">
+            <div className="flex-1 h-[6px] bg-[rgba(255,255,255,0.05)] overflow-hidden rounded-sm">
+              <motion.div
+                className="h-full rounded-sm"
+                style={{ background: "var(--rank)" }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.round(planCompletionRate(state, today, totalPlanSteps(plan)) * 100)}%` }}
+                transition={{ duration: 0.4 }}
+              />
+            </div>
+            <span className="mono text-[10px] text-[#8993a6]">
+              {(state.planCompletions[today] || []).length}/{totalPlanSteps(plan)} DONE
+            </span>
+          </div>
         )}
       </div>
 
@@ -415,22 +445,34 @@ export default function DailyPlanView() {
                             SUB-OBJECTIVES
                           </p>
                           <ol className="space-y-2">
-                            {steps.map((st, i) => (
-                              <li key={i} className="flex gap-2.5 items-start">
-                                <span
-                                  className="term text-[10px] mt-0.5 w-5 h-5 grid place-items-center shrink-0 rounded-sm"
-                                  style={{
-                                    border: "1px solid var(--line-strong)",
-                                    color: "var(--rank)",
-                                  }}
-                                >
-                                  {String(i + 1).padStart(2, "0")}
-                                </span>
-                                <span className="mono text-[13.5px] text-[#d5dceb] leading-relaxed">
-                                  {st}
-                                </span>
-                              </li>
-                            ))}
+                            {steps.map((st, i) => {
+                              const sid = stepId(s.key as string, i);
+                              const completed = (state.planCompletions[today] || []).includes(sid);
+                              return (
+                                <li key={sid} className="flex gap-2.5 items-start">
+                                  <button
+                                    onClick={() => togglePlanCompletion(today, sid)}
+                                    className="term text-[10px] mt-0.5 w-5 h-5 grid place-items-center shrink-0 rounded-sm transition-all duration-150"
+                                    style={{
+                                      border: completed
+                                        ? "1px solid var(--rank)"
+                                        : "1px solid var(--line-strong)",
+                                      background: completed
+                                        ? "color-mix(in srgb, var(--rank) 20%, transparent)"
+                                        : "transparent",
+                                      color: completed ? "var(--rank)" : "#828c9e",
+                                    }}
+                                    aria-label={completed ? `Mark incomplete: ${st}` : `Mark complete: ${st}`}
+                                    title={completed ? "Click to uncheck" : "Click to complete"}
+                                  >
+                                    {completed ? "✓" : String(i + 1).padStart(2, "0")}
+                                  </button>
+                                  <span className={`mono text-[13.5px] leading-relaxed ${completed ? "text-[#828c9e] line-through" : "text-[#d5dceb]"}`}>
+                                    {st}
+                                  </span>
+                                </li>
+                              );
+                            })}
                           </ol>
                           {src && (
                             <p

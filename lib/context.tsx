@@ -7,6 +7,7 @@ import {
   saveState,
   defaultState,
   toggleHabit,
+  togglePlanCompletion,
   todayStr,
   retrieveChunks,
   sanitizeState,
@@ -26,6 +27,7 @@ interface Ctx {
   setJournal: (date: string, text: string) => void;
   applyFreeze: (date: string) => void;
   removeFreeze: (date: string) => void;
+  togglePlanCompletion: (date: string, stepId: string) => void;
   importState: (raw: unknown) => void;
 }
 
@@ -160,6 +162,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const togglePlanCompletionCb = useCallback((date: string, stepId: string) => {
+    setState((s) => togglePlanCompletion(s, date, stepId));
+  }, []);
+
   const importState = useCallback((raw: unknown) => {
     const next = sanitizeState((raw || {}) as Partial<AppState>);
     setState(next);
@@ -180,6 +186,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setJournal,
         applyFreeze,
         removeFreeze,
+        togglePlanCompletion: togglePlanCompletionCb,
         importState,
       }}
     >

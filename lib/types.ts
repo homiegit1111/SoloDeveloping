@@ -61,6 +61,7 @@ export interface AppState {
   bookChunks: Record<string, BookChunk[]>; // slug -> chunks (in localStorage)
   journal: Record<string, string>; // date -> one-line evening reflection
   freezeDays: string[]; // dates protected by a Streak Freeze (bridge the chain, no XP)
+  planCompletions: Record<string, string[]>; // date -> completed plan step IDs
   settings: {
     aiEnabled: boolean;
     soundEnabled: boolean;
