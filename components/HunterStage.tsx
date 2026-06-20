@@ -1,11 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Rank } from "@/lib/types";
 import { rankProgress, nextRank } from "@/lib/ranks";
 import HunterCanvas from "./HunterCanvas";
+import EnergySurge from "./EnergySurge";
 import { useApp } from "@/lib/context";
 
 const HunterModel3D = dynamic(() => import("./HunterModel3D"), { ssr: false });
@@ -20,6 +21,11 @@ function supportsWebGL(): boolean {
   } catch {
     return false;
   }
+}
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 // ============================================================
@@ -46,10 +52,39 @@ export default function HunterStage({
   const prefer3d = !!state.settings.use3dModel;
   const [webglOk, setWebglOk] = useState(false);
 
+  // ---- evolution state ----
+  const prevRankRef = useRef<Rank | null>(null);
+  const [evolving, setEvolving] = useState(false);
+  const [crossfadeKey, setCrossfadeKey] = useState(rank.name);
+  const [ariaLabel, setAriaLabel] = useState(`Hunter manifestation at ${rank.name}`);
+
   useEffect(() => {
     setWebglOk(supportsWebGL());
   }, []);
 
+  // Detect rank change and trigger evolution morph
+  useEffect(() => {
+    const prev = prevRankRef.current;
+    if (prev && prev.name !== rank.name) {
+      setEvolving(true);
+      setCrossfadeKey(rank.name);
+      setAriaLabel(
+        `Hunter evolving from ${prev.name} to ${rank.name}`
+      );
+      // Reset aria-label after transition settles
+      const t = setTimeout(() => {
+        setAriaLabel(`Hunter manifestation at ${rank.name}`);
+      }, 1200);
+      return () => clearTimeout(t);
+    }
+    prevRankRef.current = rank;
+  }, [rank]);
+
+  const handleSurgeDone = useCallback(() => {
+    setEvolving(false);
+  }, []);
+
+  const reduced = prefersReducedMotion();
   const use3d = prefer3d && webglOk;
 
   const progress = rankProgress(totalXP);
@@ -67,17 +102,48 @@ export default function HunterStage({
           : { label: "WEAKENED", color: "#ef4444" };
 
   return (
-    <div className="sys-window sys-corner relative overflow-hidden h-[50vh] min-h-[300px] lg:h-[72vh] lg:min-h-[560px]">
+    <div
+      className="sys-window sys-corner relative overflow-hidden h-[50vh] min-h-[300px] lg:h-[72vh] lg:min-h-[560px]"
+      role="img"
+      aria-label={ariaLabel}
+    >
       <div className="scanline" />
 
       {/* full-bleed living Hunter — fills the entire stage */}
       <div className="absolute inset-0 z-0">
-        {use3d ? (
-          <HunterModel3D rank={rank} condition={cond} penalty={penalty} />
+        {reduced ? (
+          // Instant swap for reduced-motion users — no crossfade or particles
+          use3d ? (
+            <HunterModel3D rank={rank} condition={cond} penalty={penalty} />
+          ) : (
+            <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
+          )
         ) : (
-          <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={crossfadeKey}
+              className="absolute inset-0"
+              initial={{ opacity: 0, scale: 0.96, filter: "blur(6px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
+            >
+              {use3d ? (
+                <HunterModel3D rank={rank} condition={cond} penalty={penalty} />
+              ) : (
+                <HunterCanvas rank={rank} condition={cond} penalty={penalty} fill />
+              )}
+            </motion.div>
+          </AnimatePresence>
         )}
       </div>
+
+      {/* energy-surge particle wash at transform moment */}
+      <EnergySurge
+        color={rank.color}
+        active={evolving}
+        onDone={handleSurgeDone}
+      />
 
       {/* top HUD — rank assessment + power */}
       <div className="relative z-10 flex items-start justify-between gap-3 px-4 sm:px-5 pt-4 sm:pt-5 pointer-events-none">

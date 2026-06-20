@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { Rank } from "@/lib/types";
 import HunterCanvas from "./HunterCanvas";
 import SystemWindow, { useTypewriter } from "./SystemWindow";
@@ -29,6 +30,7 @@ const GLYPH: Record<string, string> = {
 type Phase = "black" | "pulse" | "title" | "assemble" | "promote";
 
 export default function RankUpCeremony({ rank, open, onClose }: { rank: Rank; open: boolean; onClose: () => void }) {
+  const containerRef = useFocusTrap(open, onClose); // Escape closes overlay
   const [phase, setPhase] = useState<Phase>("black");
 
   useEffect(() => {
@@ -53,6 +55,11 @@ export default function RankUpCeremony({ rank, open, onClose }: { rank: Rank; op
     <AnimatePresence>
       {open && (
         <motion.div
+          ref={containerRef as any}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Rank up ceremony"
+          tabIndex={-1}
           className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden"
           style={{ ["--rank" as any]: c, ["--rank-glow" as any]: glow } as React.CSSProperties}
           initial={{ opacity: 0 }}

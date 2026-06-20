@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useApp } from "@/lib/context";
 import { todayStr, slimState } from "@/lib/store";
+import { TactileButton } from "@/components/TactileMotion";
 
 // Backup & Restore. localStorage can be wiped (clearing the browser, switching
 // phones). This lets Ravi download his entire save and restore it anywhere —
@@ -63,20 +64,20 @@ export default function BackupPanel() {
         A local export you can never lose your 90 days with — even offline. With Cloud Sync on, this is your manual safety net.
       </p>
       <div className="flex gap-2">
-        <button
+        <TactileButton
           onClick={exportSave}
           className="flex-1 term text-[11px] py-2 border hover:text-[color:var(--rank)] transition-colors"
           style={{ borderColor: "var(--line-strong)", background: "color-mix(in srgb, var(--rank) 8%, transparent)" }}
         >
           EXPORT SAVE
-        </button>
-        <button
+        </TactileButton>
+        <TactileButton
           onClick={() => fileRef.current?.click()}
           className="flex-1 term text-[11px] py-2 border hover:text-[color:var(--rank)] transition-colors"
           style={{ borderColor: "var(--line)" }}
         >
           RESTORE
-        </button>
+        </TactileButton>
         <input ref={fileRef} type="file" accept="application/json,.json" onChange={onPickFile} className="hidden" />
       </div>
       {msg && <p className="mono text-[12px] mt-2" style={{ color: "var(--rank)" }}>{msg}</p>}

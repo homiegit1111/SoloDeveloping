@@ -8,6 +8,7 @@ import { sysOpen } from "@/lib/sound";
 import { backfillHistory } from "@/lib/store";
 import { ALL_HABIT_IDS, HABIT_BY_ID } from "@/lib/habits";
 import type { HabitId } from "@/lib/types";
+import { TactileButton, TactileInput, TactileNumber } from "@/components/TactileMotion";
 
 // First-run gate: the System "awakens" the Hunter.
 export default function Onboarding({ onDone }: { onDone: () => void }) {
@@ -43,21 +44,22 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           You had it all. You lost it. Now you rebuild — body, mind, money, discipline, presence. 90 days.
           One comeback. This is your weapon. State your name and step through the gate.
         </p>
-        <label className="relative z-10 label block text-left mb-2">Hunter designation</label>
-        <input
+        <label htmlFor="hunter-name" className="relative z-10 label block text-left mb-2">Hunter designation</label>
+        <TactileInput
+          id="hunter-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="relative z-10 w-full px-4 py-3 bg-[rgba(255,255,255,0.03)] border title-font text-[#eaf6ff] mb-5 outline-none transition-colors"
-          style={{ borderColor: "var(--line-strong)" }}
+          style={{ borderColor: "var(--line-strong)", background: "rgba(255,255,255,0.03)" }}
           placeholder="Your name"
         />
         <div className="relative z-10">
-          <button
+          <TactileButton
             onClick={() => setImportOpen((v) => !v)}
-            className="term text-[10px] mb-3 block opacity-70 hover:opacity-100 transition-opacity"
+            className="term text-[10px] mb-3 block opacity-70 hover:opacity-100 transition-opacity text-left"
           >
             {importOpen ? "▾ Hide streak import" : "▸ Already have a streak?"}
-          </button>
+          </TactileButton>
           {importOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -69,15 +71,15 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
                 and which quests you kept.
               </p>
               <div>
-                <label className="label block text-left mb-1">Consecutive days</label>
-                <input
-                  type="number"
+                <label htmlFor="streak-days" className="label block text-left mb-1">Consecutive days</label>
+                <TactileNumber
+                  id="streak-days"
                   min={0}
                   max={365}
                   value={streakDays}
                   onChange={(e) => setStreakDays(Math.max(0, Number(e.target.value)))}
                   className="w-full px-3 py-2 bg-[rgba(255,255,255,0.03)] border title-font text-[#eaf6ff] outline-none transition-colors"
-                  style={{ borderColor: "var(--line-strong)" }}
+                  style={{ borderColor: "var(--line-strong)", background: "rgba(255,255,255,0.03)" }}
                 />
               </div>
               <div>
@@ -87,13 +89,14 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
                     const h = HABIT_BY_ID[id];
                     const checked = importHabits.includes(id);
                     return (
-                      <button
+                      <TactileButton
                         key={id}
                         onClick={() =>
                           setImportHabits((prev) =>
                             checked ? prev.filter((x) => x !== id) : [...prev, id]
                           )
                         }
+                        aria-pressed={checked}
                         className={`flex items-center gap-1.5 px-2 py-1.5 border text-[11px] rounded-sm transition-all ${
                           checked
                             ? "border-[var(--rank)] bg-[color-mix(in_srgb,var(--rank)_12%,transparent)]"
@@ -102,7 +105,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
                       >
                         <span>{h.icon}</span>
                         <span className="text-[#d6dbe6]">{h.short}</span>
-                      </button>
+                      </TactileButton>
                     );
                   })}
                 </div>
@@ -110,7 +113,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             </motion.div>
           )}
         </div>
-        <button
+        <TactileButton
           onClick={() => {
             sysOpen();
             let next = { ...state, name: name.trim() || "Ravi" };
@@ -123,7 +126,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           className="relative z-10 sys-btn w-full py-3.5 text-sm"
         >
           BEGIN THE ASCENT
-        </button>
+        </TactileButton>
       </motion.div>
     </div>
   );

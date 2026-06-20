@@ -110,6 +110,7 @@ export default function LibraryView({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search every book… (e.g. discipline, percentage, boundaries)"
+        aria-label="Search books"
         className="w-full bg-[rgba(8,10,18,0.7)] border px-4 py-3 mono text-sm text-[#e7eefc] placeholder:text-[#5d6678] outline-none focus:border-[color:var(--rank)] transition-colors"
         style={{ borderColor: "var(--line)" }}
       />

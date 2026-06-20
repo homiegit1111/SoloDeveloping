@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { DailyPlan } from "@/lib/types";
+import { TactileButton } from "@/components/TactileMotion";
 import { todayStr, activeChunks, planCompletionRate } from "@/lib/store";
 import { diagnose } from "@/lib/diagnosis";
 import { retrieveAll, domainChunksOf, Passage } from "@/lib/retrieval";
@@ -22,18 +23,49 @@ const SECTIONS: {
   label: string;
   code: string;
   Icon: IconT;
+  accent: string;
 }[] = [
-  { key: "gym", label: "Physical Conditioning", code: "GYM", Icon: IconGym },
-  { key: "maths", label: "Cognitive Drill", code: "STUDY", Icon: IconMaths },
-  { key: "skincare", label: "Presentation", code: "SKIN", Icon: IconSkincare },
+  { key: "gym", label: "Physical Conditioning", code: "GYM", Icon: IconGym, accent: "#ff6b78" },
+  { key: "maths", label: "Cognitive Drill", code: "STUDY", Icon: IconMaths, accent: "#3da9fc" },
+  { key: "skincare", label: "Presentation", code: "SKIN", Icon: IconSkincare, accent: "#C9A84C" },
   {
     key: "communication",
     label: "Field Comms",
     code: "COMMS",
     Icon: IconComms,
+    accent: "#39d98a",
   },
-  { key: "mindset", label: "Mental Fortitude", code: "MIND", Icon: IconBrain },
+  { key: "mindset", label: "Mental Fortitude", code: "MIND", Icon: IconBrain, accent: "#8a5cf6" },
 ];
+
+/* ── Staggered unroll reveal variants ─────────────────────────────────────── */
+const unrollContainer = {
+  hidden: { opacity: 1 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.08 },
+  },
+};
+
+const unrollItem = {
+  hidden: { opacity: 0, y: 25, scaleY: 0.85, originY: 0 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scaleY: 1,
+    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+function accentFlashVariants(accent: string) {
+  return {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: [1, 0.3, 0.85, 1],
+      transition: { duration: 0.45, ease: "easeOut" },
+    },
+  };
+}
 
 const PHASE_LABEL: Record<string, string> = {
   onboarding: "AWAKENING",
@@ -137,6 +169,7 @@ export default function DailyPlanView() {
   const [info, setInfo] = useState("");
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [readings, setReadings] = useState<Passage[]>([]);
+  const reduced = useReducedMotion();
 
   const dx = useMemo(() => diagnose(state), [state]);
 
@@ -221,7 +254,7 @@ export default function DailyPlanView() {
           </p>
         </div>
 
-        <button
+        <TactileButton
           onClick={generate}
           disabled={loading}
           className="relative z-10 sys-btn w-full py-3 text-sm disabled:opacity-50"
@@ -231,7 +264,7 @@ export default function DailyPlanView() {
             : plan
               ? "REGENERATE ORDERS"
               : "GENERATE TODAY'S ORDERS"}
-        </button>
+        </TactileButton>
         {err && (
           <p className="relative z-10 mono text-xs text-[#ff7b7b] mt-2">
             {err}
@@ -314,12 +347,30 @@ export default function DailyPlanView() {
             {/* ZONE 2 · QUESTS */}
             <ZoneLabel n="01">TODAY&rsquo;S QUESTS · {questCount}</ZoneLabel>
 
-            {/* BOSS QUEST */}
-            {plan.bossTask && (
-              <div
+            {/* Staggered unroll reveal — scroll-triggered, accent flash per section */}
+            <motion.div
+              className="space-y-3"
+              variants={unrollContainer}
+              initial={reduced ? false : "hidden"}
+              animate={reduced ? false : "show"}
+              aria-live="polite"
+              aria-label="Today's quests"
+            >
+              {/* BOSS QUEST */}
+              {plan.bossTask && (
+              <motion.div
                 className="sys-window sys-corner p-4 relative overflow-hidden border-l-2"
                 style={{ borderColor: "#ff4d5e" }}
+                variants={unrollItem}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0, scaleY: 1 }}
+                viewport={{ once: true }}
               >
+                {/* Accent flash bar */}
+                <motion.div
+                  className="absolute top-0 left-0 right-0 h-[3px] rounded-t-sm"
+                  style={{ background: "#ff4d5e" }}
+                  variants={accentFlashVariants("#ff4d5e")}
+                />
                 <div className="scanline" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-1">
@@ -333,12 +384,12 @@ export default function DailyPlanView() {
                     >
                       BOSS QUEST
                     </span>
-                    <p
+                    <h3
                       className="title-font text-[13px] tracking-wide"
                       style={{ color: "#ff8089" }}
                     >
                       ⚔ {plan.bossTask.title}
-                    </p>
+                    </h3>
                   </div>
                   <ol className="space-y-1.5 mt-2">
                     {toSteps(plan.bossTask.detail).map((st, i) => {
@@ -346,7 +397,7 @@ export default function DailyPlanView() {
                       const completed = (state.planCompletions[today] || []).includes(sid);
                       return (
                         <li key={sid} className="flex gap-2.5 items-start">
-                          <button
+                          <TactileButton
                             onClick={() => togglePlanCompletion(today, sid)}
                             className="term text-[11px] mt-0.5 w-5 h-5 grid place-items-center shrink-0 rounded-sm transition-all duration-150"
                             style={{
@@ -360,9 +411,10 @@ export default function DailyPlanView() {
                             }}
                             aria-label={completed ? `Mark incomplete: ${st}` : `Mark complete: ${st}`}
                             title={completed ? "Click to uncheck" : "Click to complete"}
+                            glowColor="rgba(255,107,120,0.5)"
                           >
                             {completed ? "✓" : String(i + 1).padStart(2, "0")}
-                          </button>
+                          </TactileButton>
                           <span className={`mono text-[13.5px] leading-relaxed ${completed ? "text-[#a07478] line-through" : "text-[#f1e3e4]"}`}>
                             {st}
                           </span>
@@ -380,7 +432,7 @@ export default function DailyPlanView() {
                     </p>
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Standard quests — expand into sub-objectives */}
@@ -395,15 +447,24 @@ export default function DailyPlanView() {
               const steps = toSteps(block.detail);
               const Icon = s.Icon;
               return (
-                <div
+                <motion.div
                   key={s.key as string}
-                  className="glass border-l-2 transition-colors overflow-hidden"
+                  className="glass border-l-2 transition-colors overflow-hidden relative"
                   style={{
                     borderColor: isOpen
-                      ? "var(--rank)"
-                      : "color-mix(in srgb, var(--rank) 30%, transparent)",
+                      ? s.accent
+                      : `color-mix(in srgb, ${s.accent} 30%, transparent)`,
                   }}
+                  variants={unrollItem}
+                  whileInView={reduced ? undefined : { opacity: 1, y: 0, scaleY: 1 }}
+                  viewport={{ once: true }}
                 >
+                  {/* Accent flash bar */}
+                  <motion.div
+                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-sm"
+                    style={{ background: s.accent }}
+                    variants={accentFlashVariants(s.accent)}
+                  />
                   <button
                     onClick={() =>
                       setOpenSection(isOpen ? null : (s.key as string))
@@ -413,10 +474,9 @@ export default function DailyPlanView() {
                     <span
                       className="grid place-items-center shrink-0 w-9 h-9 rounded-sm"
                       style={{
-                        background:
-                          "color-mix(in srgb, var(--rank) 12%, transparent)",
-                        border: "1px solid var(--line-strong)",
-                        color: "var(--rank)",
+                        background: `color-mix(in srgb, ${s.accent} 12%, transparent)`,
+                        border: `1px solid color-mix(in srgb, ${s.accent} 35%, transparent)`,
+                        color: s.accent,
                       }}
                     >
                       <Icon size={18} />
@@ -431,13 +491,13 @@ export default function DailyPlanView() {
                           {steps.length} STEP{steps.length !== 1 ? "S" : ""}
                         </span>
                       </p>
-                      <p className="mono text-[15px] text-[#eef4ff] font-semibold leading-snug mt-0.5 truncate">
+                      <h3 className="mono text-[15px] text-[#eef4ff] font-semibold leading-snug mt-0.5 truncate">
                         {block.title}
-                      </p>
+                      </h3>
                     </div>
                     <span
                       className="term text-[11px] shrink-0"
-                      style={{ color: isOpen ? "var(--rank)" : "#828c9e" }}
+                      style={{ color: isOpen ? s.accent : "#828c9e" }}
                     >
                       {isOpen ? "▾" : "▸"}
                     </span>
@@ -464,7 +524,7 @@ export default function DailyPlanView() {
                               const completed = (state.planCompletions[today] || []).includes(sid);
                               return (
                                 <li key={sid} className="flex gap-2.5 items-start">
-                                  <button
+                                  <TactileButton
                                     onClick={() => togglePlanCompletion(today, sid)}
                                     className="term text-[10px] mt-0.5 w-5 h-5 grid place-items-center shrink-0 rounded-sm transition-all duration-150"
                                     style={{
@@ -480,7 +540,7 @@ export default function DailyPlanView() {
                                     title={completed ? "Click to uncheck" : "Click to complete"}
                                   >
                                     {completed ? "✓" : String(i + 1).padStart(2, "0")}
-                                  </button>
+                                  </TactileButton>
                                   <span className={`mono text-[13.5px] leading-relaxed ${completed ? "text-[#828c9e] line-through" : "text-[#d5dceb]"}`}>
                                     {st}
                                   </span>
@@ -500,9 +560,10 @@ export default function DailyPlanView() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
+            </motion.div>
           </div>
 
           {/* ===== RIGHT — INTEL FROM THE BOOKS (knowledge, not tasks) ===== */}

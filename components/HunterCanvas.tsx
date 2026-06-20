@@ -737,6 +737,8 @@ export default function HunterCanvas({
   return (
     <canvas
       ref={ref}
+      role="img"
+      aria-label="Animated hunter visualization"
       className={className}
       style={
         fill

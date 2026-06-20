@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useApp } from "@/lib/context";
+import { TactileButton, TactileToggle } from "@/components/TactileMotion";
 import { AppState, HabitId } from "@/lib/types";
 import { HABIT_BY_ID } from "@/lib/habits";
 import { freezesAvailable } from "@/lib/store";
@@ -43,22 +45,11 @@ function Toggle({
   label: string;
 }) {
   return (
-    <button
-      onClick={onToggle}
-      className="flex items-center justify-between w-full py-2.5 border-b transition-colors"
-      style={{ borderColor: "var(--line)" }}
-    >
-      <span className="term text-[12px] text-[#b8c4dc]">{label}</span>
-      <span
-        className="relative inline-flex h-5 w-9 rounded-full transition-colors"
-        style={{ background: on ? "var(--rank)" : "var(--line-strong)" }}
-      >
-        <span
-          className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-[#e7eefc] transition-transform"
-          style={{ transform: on ? "translateX(16px)" : "translateX(0)" }}
-        />
-      </span>
-    </button>
+    <TactileToggle
+      value={on}
+      onChange={onToggle}
+      label={label}
+    />
   );
 }
 
@@ -99,6 +90,7 @@ function HabitLabelRow({
             if (e.key === "Enter") save();
             if (e.key === "Escape") setEditing(false);
           }}
+          aria-label={`Edit ${HABIT_BY_ID[id].label} quest label`}
           className="term text-[12px] text-[#e7eefc] bg-transparent border-b focus:outline-none focus:border-[color:var(--rank)] text-right w-40"
           style={{ borderColor: "var(--line)" }}
         />
@@ -118,6 +110,7 @@ function HabitLabelRow({
 }
 
 export default function SettingsScreen({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const containerRef = useFocusTrap(open, onClose);
   const { state, update } = useApp();
   const [section, setSection] = useState<SectionId>("display");
 
@@ -135,6 +128,11 @@ export default function SettingsScreen({ open, onClose }: { open: boolean; onClo
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
+          ref={containerRef as any}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Settings"
+          tabIndex={-1}
           className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center p-4 sm:p-6"
           onClick={onClose}
         >
@@ -153,20 +151,20 @@ export default function SettingsScreen({ open, onClose }: { open: boolean; onClo
             {/* Header */}
             <div className="flex items-center justify-between mb-3 px-1">
               <p className="label">SYSTEM · SETTINGS</p>
-              <button
+              <TactileButton
                 onClick={onClose}
                 aria-label="Close"
                 className="term text-[13px] w-7 h-7 grid place-items-center border hover:text-[color:var(--rank)] transition-colors"
                 style={{ borderColor: "var(--line)" }}
               >
                 ✕
-              </button>
+              </TactileButton>
             </div>
 
             {/* Section Tabs */}
             <div className="flex gap-1 mb-3 overflow-x-auto pb-1 scrollbar-none">
               {SECTIONS.map(({ id, label, Icon }) => (
-                <button
+                <TactileButton
                   key={id}
                   onClick={() => setSection(id)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 border term text-[10px] transition-all whitespace-nowrap ${
@@ -184,7 +182,7 @@ export default function SettingsScreen({ open, onClose }: { open: boolean; onClo
                 >
                   <Icon size={12} />
                   {label}
-                </button>
+                </TactileButton>
               ))}
             </div>
 

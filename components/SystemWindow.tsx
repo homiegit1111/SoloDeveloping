@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { sysOpen as sndOpen, shatter as sndShatter } from "@/lib/sound";
+import { TactileButton } from "@/components/TactileMotion";
 
 // ============================================================
 // SYSTEM WINDOW — the manhwa popup frame.
@@ -91,9 +92,9 @@ export default function SystemWindow({
 
       {onDismiss && (
         <div className="px-5 pb-5">
-          <button onClick={dismiss} className="sys-btn w-full py-2.5 text-sm">
+          <TactileButton onClick={dismiss} className="sys-btn w-full py-2.5 text-sm">
             [ {dismissLabel} ]
-          </button>
+          </TactileButton>
         </div>
       )}
     </motion.div>

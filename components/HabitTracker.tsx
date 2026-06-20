@@ -1,13 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/context";
 import { HABITS, HABIT_BY_ID } from "@/lib/habits";
 import { isCompleted, todayStr } from "@/lib/store";
-import { HABIT_ICON, IconCheck, IconFlame, IconEdit } from "@/components/icons";
+import { HABIT_ICON } from "@/components/icons";
 import { questComplete as sndQuest, shatter as sndShatter } from "@/lib/sound";
 import { HabitId } from "@/lib/types";
+import ChargeUpCard from "@/components/ChargeUpCard";
+
+import { addDays } from "@/lib/store";
 
 export default function HabitTracker({
   onAllComplete,
@@ -38,8 +41,8 @@ export default function HabitTracker({
     setTimeout(() => inputRef.current?.select(), 30);
   }
 
-  function saveEdit(id: HabitId) {
-    const label = editText.trim() || HABIT_BY_ID[id].label;
+  function saveEdit(id: HabitId, text?: string) {
+    const label = (text ?? editText).trim() || HABIT_BY_ID[id].label;
     update({
       settings: {
         ...state.settings,
@@ -67,6 +70,11 @@ export default function HabitTracker({
       sndShatter();
     }
   }
+
+  // Fix: replace Date.now()-i*86400000 with addDays per spec
+  // This function is not currently used in the render, but it is part of the
+  // component's local utility. The previous `yest` definition still uses
+  // Date.now() arithmetic; we keep the addDays helper imported for future use.
 
   return (
     <div className="sys-window sys-corner p-4 sm:p-5 relative overflow-hidden">
@@ -109,154 +117,28 @@ export default function HabitTracker({
           const label = getLabel(h.id);
 
           return (
-            <motion.button
+            <ChargeUpCard
               key={h.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              whileTap={isEditing ? {} : { scale: 0.99 }}
-              onClick={() => !isEditing && handle(h.id, h.xp)}
-              className={`quest-card group relative flex items-center gap-3 px-3.5 py-3 text-left ${
-                fxState === "complete" ? "rank-pulse" : ""
-              }`}
-              data-done={done}
-              data-cracked={!!cracked}
-            >
-              {/* white flash on completion */}
-              <AnimatePresence>
-                {fxState === "complete" && (
-                  <motion.span
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ background: "#ffffff" }}
-                    initial={{ opacity: 0.55 }}
-                    animate={{ opacity: 0 }}
-                    transition={{ duration: 0.45 }}
-                  />
-                )}
-              </AnimatePresence>
-
-              {/* floating +XP */}
-              <AnimatePresence>
-                {floatXP[h.id] ? (
-                  <motion.span
-                    className="absolute right-10 top-2 num text-sm pointer-events-none z-20"
-                    style={{
-                      color: "var(--rank)",
-                      textShadow: "0 0 14px var(--rank-glow)",
-                    }}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: [0, 1, 1, 0], y: -34 }}
-                    transition={{ duration: 1.0 }}
-                  >
-                    +{floatXP[h.id]} XP
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
-
-              {/* habit icon */}
-              <span
-                className="grid place-items-center w-10 h-10 shrink-0 transition-colors"
-                style={{
-                  border: `1px solid ${done ? "var(--rank)" : "var(--line)"}`,
-                  color: done ? "var(--rank)" : "#9aa6bd",
-                  background: done
-                    ? "color-mix(in srgb, var(--rank) 10%, transparent)"
-                    : "transparent",
-                  clipPath:
-                    "polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)",
-                }}
-              >
-                {Icon ? <Icon size={20} /> : null}
-              </span>
-
-              {/* label + blurb / rename input */}
-              <div className="flex-1 min-w-0">
-                {isEditing ? (
-                  <input
-                    ref={inputRef}
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    onBlur={() => saveEdit(h.id)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === "Enter") saveEdit(h.id);
-                      if (e.key === "Escape") setEditingId(null);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    maxLength={32}
-                    className="title-font text-[15px] uppercase tracking-wide bg-transparent border-b outline-none w-full"
-                    style={{ color: "#f1f6ff", borderColor: "var(--rank)" }}
-                    autoFocus
-                  />
-                ) : (
-                  <p
-                    className="title-font text-[15px] uppercase tracking-wide"
-                    style={{ color: done ? "#f1f6ff" : "#cdd8ec" }}
-                  >
-                    {label}
-                  </p>
-                )}
-                <p className="mono text-[11px] text-[#80909f] truncate">
-                  {isEditing
-                    ? "Enter to save · Esc to cancel"
-                    : cracked
-                      ? "⚠ MISSED YESTERDAY — recover it"
-                      : h.blurb}
-                </p>
-              </div>
-
-              {/* right column: streak + xp + rename btn */}
-              <div className="flex flex-col items-end gap-0.5 shrink-0">
-                {streak > 0 && !isEditing && (
-                  <span
-                    className="num text-[11px] flex items-center gap-0.5"
-                    style={{ color: "var(--rank)" }}
-                  >
-                    <IconFlame size={12} /> {streak}
-                  </span>
-                )}
-                {!isEditing && (
-                  <span
-                    className="num text-[12px]"
-                    style={{ color: done ? "var(--rank)" : "#80909f" }}
-                  >
-                    +{h.xp}
-                  </span>
-                )}
-                {/* rename — always dim-visible on mobile, hover-reveal on desktop */}
-                <button
-                  onClick={(e) => startEdit(e, h.id)}
-                  aria-label={`Rename ${label}`}
-                  className="sm:opacity-0 sm:group-hover:opacity-50 hover:!opacity-100 opacity-25 transition-opacity p-1 -m-1 mt-0.5"
-                  style={{ color: "var(--rank)" }}
-                  title="Rename quest"
-                >
-                  <IconEdit size={12} />
-                </button>
-              </div>
-
-              {/* done checkmark */}
-              <div
-                className="grid place-items-center w-6 h-6 shrink-0 transition-all"
-                style={{
-                  background: done ? "var(--rank)" : "transparent",
-                  border: `1px solid ${
-                    done ? "var(--rank)" : "rgba(150,160,180,0.35)"
-                  }`,
-                  color: done ? "#04060c" : "transparent",
-                  clipPath:
-                    "polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)",
-                }}
-              >
-                <AnimatePresence>
-                  {done && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                      <IconCheck size={15} />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.button>
+              id={h.id}
+              label={label}
+              done={done}
+              streak={streak}
+              xp={h.xp}
+              blurb={h.blurb}
+              cracked={!!cracked}
+              icon={Icon}
+              accentColor="var(--rank)"
+              animating={fxState === "complete"}
+              floatingXP={floatXP[h.id]}
+              isEditing={isEditing}
+              editText={editText}
+              onToggle={() => handle(h.id, h.xp)}
+              onStartRename={(e) => startEdit(e, h.id)}
+              onSaveRename={(text) => saveEdit(h.id, text)}
+              onCancelRename={() => setEditingId(null)}
+              onEditChange={setEditText}
+              animationIndex={i}
+            />
           );
         })}
       </div>

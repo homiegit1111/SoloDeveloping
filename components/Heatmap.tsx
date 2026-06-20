@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { AppState } from "@/lib/types";
 import { addDays, todayStr } from "@/lib/store";
 
@@ -26,6 +26,7 @@ function intensityColor(level: number, rankColor: string): string {
 export default function Heatmap({ state, days = 90 }: HeatmapProps) {
   const [hovered, setHovered] = useState<string | null>(null);
   const today = todayStr();
+  const reduced = useReducedMotion();
 
   const weeks = useMemo(() => {
     const result: { date: string; completed: number }[][] = [];
@@ -56,8 +57,8 @@ export default function Heatmap({ state, days = 90 }: HeatmapProps) {
 
   const rankColor = state.rankIndex >= 0 ? "var(--rank)" : "#4f9eff";
 
-  // Stagger delay wave: left-to-right, bottom-to-top
-  const totalCells = weeks.length * 7;
+  // wave-fill delay: diagonal ripple from top-left to bottom-right
+  const BASE_DELAY = 0.02; // 20 ms per diagonal step
 
   return (
     <div className="space-y-2">
@@ -71,34 +72,37 @@ export default function Heatmap({ state, days = 90 }: HeatmapProps) {
         </p>
       </div>
 
-      <div className="flex gap-[3px] overflow-x-auto pb-1 scrollbar-none" style={{ direction: "rtl" }}>
+      <div
+        className="flex gap-[3px] overflow-x-auto pb-1 scrollbar-none"
+        style={{ direction: "rtl" }}
+        role="img"
+        aria-label="Activity heatmap showing last 90 days"
+      >
         {/* Reverse the visual order so today is on the right */}
-        {[...weeks].reverse().map((week, weekIdx) => (
-          <div key={weekIdx} className="flex flex-col gap-[3px]" style={{ direction: "ltr" }}>
+        {[...weeks].reverse().map((week, colIndex) => (
+          <div key={colIndex} className="flex flex-col gap-[3px]" style={{ direction: "ltr" }}>
             {week.map((day, dayIdx) => {
               if (day.completed < 0) {
                 return <div key={dayIdx} className="w-[10px] h-[10px] rounded-[2px]" />;
               }
               const level = intensityLevel(day.completed);
-              const cellIndex =
-                totalCells - ((weeks.length - 1 - [...weeks].reverse().indexOf(week)) * 7 + dayIdx) - 1;
-              const delay = cellIndex * 0.003;
+              const delay = reduced ? 0 : (dayIdx + colIndex) * BASE_DELAY;
 
               return (
                 <motion.div
                   key={day.date}
-                  initial={{ opacity: 0, scale: 0.5 }}
+                  initial={reduced ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
                     delay,
-                    duration: 0.25,
                     type: "spring",
-                    stiffness: 400,
+                    stiffness: 300,
                     damping: 20,
                   }}
                   className="w-[10px] h-[10px] rounded-[2px] relative cursor-pointer"
                   style={{
                     background: intensityColor(level, rankColor),
+                    willChange: "transform",
                     border:
                       day.date === today
                         ? `1px solid ${rankColor}`
@@ -107,6 +111,7 @@ export default function Heatmap({ state, days = 90 }: HeatmapProps) {
                   onMouseEnter={() => setHovered(day.date)}
                   onMouseLeave={() => setHovered(null)}
                   onTouchStart={() => setHovered(day.date)}
+                  aria-label={`${day.date}: ${day.completed} quest${day.completed === 1 ? "" : "s"}`}
                   title={`${day.date}: ${day.completed} quest${day.completed === 1 ? "" : "s"}`}
                 >
                   {hovered === day.date && (

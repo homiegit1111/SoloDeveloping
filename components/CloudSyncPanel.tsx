@@ -160,6 +160,7 @@ export default function CloudSyncPanel() {
           value={linkInput}
           onChange={(e) => setLinkInput(e.target.value)}
           placeholder="paste code"
+          aria-label="Device sync code"
           className="flex-1 bg-[rgba(8,10,18,0.7)] border px-3 py-2 term text-[12px] text-[#e7eefc] placeholder:text-[#5d6678] outline-none focus:border-[color:var(--rank)] transition-colors uppercase"
           style={{ borderColor: "var(--line)" }}
         />

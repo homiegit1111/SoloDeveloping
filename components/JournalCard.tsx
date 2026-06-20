@@ -70,6 +70,7 @@ export default function JournalCard() {
               rows={4}
               maxLength={240}
               placeholder="One honest line about today — what you conquered, what you dodged. The System does not judge the words, only the truth."
+              aria-label="Tonight's journal entry"
               className="w-full flex-1 mono text-[13.5px] text-[#e7eefc] placeholder:text-[#5c6374] p-3 border bg-[rgba(6,8,15,0.6)] focus:outline-none resize-none leading-relaxed transition-colors"
               style={{ borderColor: "var(--line)", minHeight: 110 }}
               onFocus={(e) => (e.currentTarget.style.borderColor = "var(--rank)")}

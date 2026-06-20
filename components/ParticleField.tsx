@@ -191,5 +191,5 @@ export default function ParticleField({ color, intensity = 0.6, tier = 0, classN
     };
   }, []);
 
-  return <canvas ref={ref} className={className} style={{ width: "100%", height: "100%", display: "block" }} />;
+  return <canvas ref={ref} role="img" aria-label="Background particle effects" className={className} style={{ width: "100%", height: "100%", display: "block" }} />;
 }

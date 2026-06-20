@@ -445,17 +445,17 @@ describe("slimState", () => {
       { slug: "up-b", title: "Up B", author: "B", categories: [], pages: 50, chunkCount: 5, preloaded: false, active: true },
     ];
     s.bookChunks = {
-      "pre-a": [{ id: "c1", text: "Preloaded", tags: [], source: "pre-a" }],
-      "up-b": [{ id: "c2", text: "Uploaded", tags: [], source: "up-b" }],
+      "pre-a": [{ id: "c1", text: "Preloaded", tags: [], book: "pre-a", page: 1 }],
+      "up-b": [{ id: "c2", text: "Uploaded", tags: [], book: "up-b", page: 1 }],
     };
     const slim = slimState(s);
     expect(slim.bookChunks["pre-a"]).toBeUndefined();
-    expect(slim.bookChunks["up-b"]).toEqual([{ id: "c2", text: "Uploaded", tags: [], source: "up-b" }]);
+    expect(slim.bookChunks["up-b"]).toEqual([{ id: "c2", text: "Uploaded", tags: [], book: "up-b", page: 1 }]);
   });
 
   it("does not mutate original state", () => {
     const s = defaultState("Test");
-    s.bookChunks = { x: [{ id: "1", text: "t", tags: [], source: "x" }] };
+    s.bookChunks = { x: [{ id: "1", text: "t", tags: [], book: "x", page: 1 }] };
     const slim = slimState(s);
     expect(s).not.toBe(slim); // different reference
     expect(s.bookChunks).toHaveProperty("x"); // original intact

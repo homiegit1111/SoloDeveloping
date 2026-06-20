@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/lib/context";
 import { todayStr } from "@/lib/store";
+import { TactileButton } from "@/components/TactileMotion";
 
 // Daily reminder via the browser Notification API. Honest scope: a notification
 // fires when the app is open past your chosen hour and today's quests aren't done.
@@ -72,7 +73,7 @@ export default function ReminderToggle() {
     <div className="glass p-4">
       <div className="flex items-center justify-between">
         <p className="title-font text-sm tracking-[0.16em] text-[#dcecff]">DAILY REMINDER</p>
-        <button
+        <TactileButton
           onClick={toggle}
           disabled={perm === "unsupported"}
           className="term text-[11px] px-3 py-1 border transition-colors disabled:opacity-40"
@@ -83,7 +84,7 @@ export default function ReminderToggle() {
           }}
         >
           {perm === "unsupported" ? "N/A" : enabled ? "ON" : "OFF"}
-        </button>
+        </TactileButton>
       </div>
       {enabled && (
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
@@ -91,6 +92,7 @@ export default function ReminderToggle() {
           <select
             value={hour}
             onChange={(e) => update({ settings: { ...state.settings, reminderHour: Number(e.target.value) } })}
+            aria-label="Reminder hour"
             className="term text-[12px] text-[#e7eefc] px-2 py-1 border bg-[rgba(8,10,18,0.7)] focus:outline-none focus:border-[color:var(--rank)]"
             style={{ borderColor: "var(--line)" }}
           >

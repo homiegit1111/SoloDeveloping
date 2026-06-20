@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useApp } from "@/lib/context";
 import { RANKS } from "@/lib/ranks";
 import { statCondition } from "@/lib/store";
@@ -64,6 +65,8 @@ function EmberBurst({ active }: { active: boolean }) {
   return (
     <canvas
       ref={canvasRef}
+      role="img"
+      aria-label="Rank up celebration effect"
       width={320}
       height={320}
       className="absolute inset-0 m-auto pointer-events-none z-30"
@@ -157,6 +160,7 @@ export default function RankUpOverlay({
   toRank: string;
   onDone: () => void;
 }) {
+  const containerRef = useFocusTrap(true, onDone);
   const { state } = useApp();
   const [visible, setVisible] = useState(true);
   const cond = useMemo(() => statCondition(state), [state]);
@@ -185,6 +189,11 @@ export default function RankUpOverlay({
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={containerRef as any}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Rank promotion overlay"
+          tabIndex={-1}
           className="fixed inset-0 z-[200] flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

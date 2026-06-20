@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/lib/context";
+import { TactileButton } from "@/components/TactileMotion";
 import { WeeklyReport } from "@/lib/types";
 import { dayNumber, activeChunks } from "@/lib/store";
 import { diagnose } from "@/lib/diagnosis";
@@ -79,9 +80,9 @@ export default function WeeklyReportView() {
             <p className="mono text-[13px] text-[#9aa5b8] leading-relaxed mb-4">
               Every 7 days the System judges your evolution and writes what should have changed.
             </p>
-            <button onClick={generate} disabled={loading} className="sys-btn w-full py-3 text-sm disabled:opacity-50 mt-auto">
+            <TactileButton onClick={generate} disabled={loading} className="sys-btn w-full py-3 text-sm disabled:opacity-50 mt-auto">
               {loading ? "COMPILING REPORT…" : `GENERATE WEEK ${week} REPORT`}
-            </button>
+            </TactileButton>
             {err && <p className="mono text-[12px] text-[#ff7b7b] mt-2">{err}</p>}
           </div>
         </div>
